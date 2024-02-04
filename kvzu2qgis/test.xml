@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <extract_about_property_land>
+    <details_statement>
+      <group_top_requisites>
+        <organ_registr_rights>Филиал публично-правовой компании "Роскадастр" по Астраханской области</organ_registr_rights>
+        <date_formation>2023-10-12</date_formation>
+      </group_top_requisites>
+    </details_statement>
+    <land_record>
+      <record_info>
+      </record_info>
+      <object>
+      </object>
+      <cad_links>
+        <included_objects>
+          <included_object>
+            <cad_number>30:04:000000:1, 30:04:000000:2;30:04:000000:3; 30:04:000000:4</cad_number>
+          </included_object>
+          <included_object>
+            <cad_number>30:04:000000:5, 30:04:000000:6;30:04:000000:7</cad_number>
+          </included_object>
+          <included_object>
+            <cad_number>30:04:000000:88</cad_number>
+          </included_object>
+        </included_objects>
+      </cad_links>
+    </land_record>
+  </extract_about_property_land>

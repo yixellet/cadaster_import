@@ -1,6 +1,7 @@
-DB_HOST = '172.17.13.6'
+DB_HOST = 'localhost'
 DB_PORT = 5432
-DB_USER = 'kotelevsky'
-DB_PASSWORD = 'H3C6q0Q2~X'
+DB_USER = 'admin'
+DB_PASSWORD = '07071907'
 DB_NAME = 'geodata'
-DB_SCHEMA ='gts'
+DB_SCHEMA = 'egrn'
+DB_TABLE = 'lands'

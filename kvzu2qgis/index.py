@@ -2,7 +2,7 @@ from os import listdir, path
 
 from connection import connectToDB
 
-from createTable import createTable
+from createTables import createTables
 from land2dict import parseXML
 from insert_into_table import insertIntoTable
 from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SCHEMA
@@ -10,7 +10,7 @@ from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SCHEMA
 (connection, cursor) = connectToDB(
   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
 
-#createTable(cursor, connection)
+#createTables(cursor, connection)
 
 data_dir = 'R:\Тематические_карты_и_планы\Инвентаризация СХ земель\КПТ\Часть_3'
 
