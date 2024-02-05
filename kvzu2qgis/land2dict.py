@@ -378,6 +378,12 @@ def parseXML(xmlfile):
             pass
 
 
+    # Кадастровая стоимость
+    if lr.find('cost') != None:
+        land['cost'] = int(lr.find('cost').text)
+    else:
+        land['cost'] = None
+
 
     # Описание местоположения границ ЗУ
     if lr.find('contours_location') != None:
@@ -397,13 +403,6 @@ def parseXML(xmlfile):
         geomWKT = 'MULTIPOLYGON(' + ','.join(contAr) + ')'
         land['geom'] = geomWKT
         
-            
-
-
-
-
-
-
     # Особые отметки
     if lr.find('special_notes') != None:
         land['special_notes'] = lr.find('special_notes').text
@@ -415,8 +414,15 @@ def parseXML(xmlfile):
     # --- СВЕДЕНИЯ О ПРАВАХ ---
     if root.find('right_records') != None:
         rr = root.find('right_records')
+        rights = []
         for rec in rr.findall('right_record'):
-            pass
+            right = {}
+            right['date'] = rec.find('record_info').find('registration_date').text
+            right['info'] = None
+            rights.append(right)
+        land['rights'] = rights
+    else:
+        land['rights'] = None
 
 
     # --- ОГРАНИЧЕНИЯ И ОБРЕМЕНЕНИЯ ---
