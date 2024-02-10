@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>393</width>
-    <height>725</height>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,16 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QPushButton" name="cancelButton">
+      <property name="text">
+       <string>Отмена</string>
+      </property>
+      <property name="shortcut">
+       <string>Esc</string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="1">
      <widget class="QPushButton" name="importButton">
       <property name="autoFillBackground">
@@ -25,16 +35,6 @@
       </property>
       <property name="shortcut">
        <string>Return</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="cancelButton">
-      <property name="text">
-       <string>Отмена</string>
-      </property>
-      <property name="shortcut">
-       <string>Esc</string>
       </property>
      </widget>
     </item>
@@ -50,7 +50,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>260</y>
+         <y>370</y>
          <width>351</width>
          <height>191</height>
         </rect>
@@ -58,52 +58,62 @@
        <property name="title">
         <string>Проекция</string>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>30</y>
+          <x>11</x>
+          <y>31</y>
           <width>331</width>
-          <height>151</height>
+          <height>50</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="commonProjectionLayout">
+        <layout class="QVBoxLayout" name="sourceProjectionLayout">
          <item>
-          <layout class="QVBoxLayout" name="sourceProjectionLayout">
-           <item>
-            <widget class="QLabel" name="sourceProjectionLabel">
-             <property name="text">
-              <string>Исходная проекция</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidget"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="withoutTransformCheck">
+          <widget class="QLabel" name="sourceProjectionLabel">
            <property name="text">
-            <string>Без преобразования координат</string>
+            <string>Исходная проекция</string>
            </property>
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="importProjectionLayout">
-           <item>
-            <widget class="QLabel" name="importProjectionLabel">
-             <property name="text">
-              <string>Проекция импорта</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QgsProjectionSelectionWidget" name="importProjectionSelectionWidget"/>
-           </item>
-          </layout>
+          <widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidget"/>
          </item>
         </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>130</y>
+          <width>331</width>
+          <height>50</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="importProjectionLayout">
+         <item>
+          <widget class="QLabel" name="importProjectionLabel">
+           <property name="text">
+            <string>Проекция импорта</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QgsProjectionSelectionWidget" name="importProjectionSelectionWidget"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QCheckBox" name="withoutTransformCheck">
+        <property name="geometry">
+         <rect>
+          <x>11</x>
+          <y>94</y>
+          <width>249</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Без преобразования координат</string>
+        </property>
        </widget>
       </widget>
       <widget class="QGroupBox" name="importToGroupBox">
@@ -112,7 +122,7 @@
          <x>10</x>
          <y>170</y>
          <width>351</width>
-         <height>71</height>
+         <height>161</height>
         </rect>
        </property>
        <property name="title">
@@ -124,7 +134,7 @@
        <property name="checkable">
         <bool>false</bool>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -140,7 +150,7 @@
             <string>Временный слой</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <attribute name="buttonGroup">
             <string notr="true">importTargetGroup</string>
@@ -152,12 +162,69 @@
            <property name="text">
             <string>База данных</string>
            </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
            <attribute name="buttonGroup">
             <string notr="true">importTargetGroup</string>
            </attribute>
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QFrame" name="dbFrame">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>331</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QSplitter" name="splitter">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>311</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QLabel" name="connectionsLabel">
+          <property name="text">
+           <string>Соединения</string>
+          </property>
+         </widget>
+         <widget class="QComboBox" name="connectionsComboBox"/>
+        </widget>
+        <widget class="QSplitter" name="splitter_2">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>49</y>
+           <width>311</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QLabel" name="schemaLabel">
+          <property name="text">
+           <string>Схема</string>
+          </property>
+         </widget>
+         <widget class="QComboBox" name="schemaComboBox"/>
+        </widget>
        </widget>
       </widget>
       <widget class="QGroupBox" name="groupBox">
@@ -172,7 +239,7 @@
        <property name="title">
         <string>Что импортировать</string>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -190,11 +257,15 @@
           </widget>
          </item>
          <item>
-          <widget class="QgsFileWidget" name="selectFileWidget"/>
+          <widget class="QgsFileWidget" name="selectFileWidget">
+           <property name="storageMode">
+            <enum>QgsFileWidget::GetFile</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -205,7 +276,7 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QRadioButton" name="radioButton">
+          <widget class="QRadioButton" name="importFileRadioButton">
            <property name="text">
             <string>Один файл</string>
            </property>
@@ -218,7 +289,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton_2">
+          <widget class="QRadioButton" name="batchImportRadioButton">
            <property name="text">
             <string>Пакетный импорт</string>
            </property>
@@ -229,6 +300,19 @@
          </item>
         </layout>
        </widget>
+      </widget>
+      <widget class="QPushButton" name="loadButton">
+       <property name="geometry">
+        <rect>
+         <x>257</x>
+         <y>340</y>
+         <width>101</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Загрузить</string>
+       </property>
       </widget>
      </widget>
     </item>
@@ -248,7 +332,40 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>batchImportRadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>selectFileWidget</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>80</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>194</x>
+     <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>batchImportRadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>selectFileLabel</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>80</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>194</x>
+     <y>117</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <buttongroups>
   <buttongroup name="importModeGroup"/>
   <buttongroup name="importTargetGroup"/>

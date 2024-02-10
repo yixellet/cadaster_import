@@ -21,11 +21,16 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
 
 import os
 
+from qgis import gui
+from qgis.core import QgsSettings, Qgis
 from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication
+
+from .cadaster_import_utils import logMessage
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'cadaster_import_dockwidget_base.ui'))
@@ -44,6 +49,49 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.addConnections()
+    
+    # Add items to connections combo box
+    def addConnections(self):
+        logMessage("startup version")
+        self.connectionsComboBox.clear()
+        connections = []
+        settings = QgsSettings()
+        settings.beginGroup('/PostgreSQl/connections')
+        keys = settings.childGroups()
+        self.connectionsComboBox.addItems(keys)
+        '''
+        for name in keys:
+            connections.append(name)
+            self.connectionsComboBox.addItem(name)
+        settings.endGroup()
+        '''
+        return connections
+    
+    def on_batchImportRadioButton_toggled(self):
+        _translate = QCoreApplication.translate
+        self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите папку"))
+        self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetDirectory)
+        
+    
+    def on_importFileRadioButton_toggled(self):
+        _translate = QCoreApplication.translate
+        self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите файл"))
+        self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetFile)
+    
+    def on_withoutTransformCheck_stateChanged(self):
+        if self.withoutTransformCheck.isChecked():
+            self.importProjectionLabel.setVisible(False)
+            self.importProjectionSelectionWidget.setVisible(False)
+        else:
+            self.importProjectionLabel.setVisible(True)
+            self.importProjectionSelectionWidget.setVisible(True)
+    
+    def on_importToDB_toggled(self):
+        self.dbFrame.setVisible(True)
+    
+    def on_impotToLayer_toggled(self):
+        self.dbFrame.setVisible(False)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()

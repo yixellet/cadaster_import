@@ -12,8 +12,8 @@ email=thaid@yandex.ru
 
 about=Плагин позволяет выполнить импорт XML-файлов, представляющих собой кадастровые выписки об объектах недвижимости и кадастровые планы территории с пересчетом координат из местных систем в любую выбранную пользователем. Импорт может быть выполнен в базу данных PostgreSQL либо во временные слои с последующим сохранением их вручную.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/yixellet/cadaster_import/issues
+repository=https://github.com/yixellet/cadaster_import
 # End of mandatory metadata
 
 # Recommended items:
