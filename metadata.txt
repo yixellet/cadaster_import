@@ -3,33 +3,34 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=Russian Cadaster XML Import
-qgisMinimumVersion=3.0
-description=Imports XML files from russian state land register
+name=cadaster_import
+qgisMinimumVersion=2.99
+qgisMaximumVersion=3.99
+
+# Provide a brief description of the plugin
+description=Dialog plugin template
 version=0.1
-author=Kirill Kotelevsky
-email=thaid@yandex.ru
+author=yixellet
+#email=yixwellet@gmail.com
 
-about=Плагин позволяет выполнить импорт XML-файлов, представляющих собой кадастровые выписки об объектах недвижимости и кадастровые планы территории с пересчетом координат из местных систем в любую выбранную пользователем. Импорт может быть выполнен в базу данных PostgreSQL либо во временные слои с последующим сохранением их вручную.
+about=Enter more info about your plugin here
 
-tracker=https://github.com/yixellet/cadaster_import/issues
-repository=https://github.com/yixellet/cadaster_import
+tracker=Provide link to your bug tracker
+repository=Provide link to the code repository
 # End of mandatory metadata
 
 # Recommended items:
 
-hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=import, cadastre
+# tags=pyqgis
 
-homepage=http://homepage
-category=Plugins
+homepage=Provide the home page for the plugin
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
