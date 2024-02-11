@@ -49,35 +49,17 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.addConnections()
-    
-    # Add items to connections combo box
-    def addConnections(self):
-        logMessage("startup version")
-        self.connectionsComboBox.clear()
-        connections = []
-        settings = QgsSettings()
-        settings.beginGroup('/PostgreSQl/connections')
-        keys = settings.childGroups()
-        self.connectionsComboBox.addItems(keys)
-        '''
-        for name in keys:
-            connections.append(name)
-            self.connectionsComboBox.addItem(name)
-        settings.endGroup()
-        '''
-        return connections
     
     def on_batchImportRadioButton_toggled(self):
         _translate = QCoreApplication.translate
         self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите папку"))
         self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetDirectory)
-        
     
     def on_importFileRadioButton_toggled(self):
         _translate = QCoreApplication.translate
         self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите файл"))
         self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetFile)
+        self.selectFileWidget.setFilter('*.xml')
     
     def on_withoutTransformCheck_stateChanged(self):
         if self.withoutTransformCheck.isChecked():
@@ -96,3 +78,14 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    def on_selectFileWidget_fileChanged(self):
+        self.analizeButton.setEnabled(True)
+        self.importButton.setEnabled(True)
+
+    def on_analizeButton_clicked(self):
+        from .parser_1 import Parser
+        if self.selectFileWidget.filePath():
+          with open(self.selectFileWidget.filePath(), encoding="utf8") as f:
+              type = Parser.getFileType(f)
+              self.info.setText(type['name'])
