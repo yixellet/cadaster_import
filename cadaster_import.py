@@ -230,3 +230,8 @@ class CadasterImport:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+    
+    def p(self, f):
+        from .parser_1 import Parser
+        Parser.parse(f, self.iface)

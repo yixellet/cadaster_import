@@ -45,12 +45,17 @@ class Parser():
         #logMessage(str(result))
         return self.result
     
+    @classmethod
     def parse(self, xml):
-        from .parser_elements import details_statement
+        from .parser_elements.details_statement import detailsStatement
+        from .parser_elements.parse_eapl import parseEapl
+        from .loaders.layer_creator import LayerCreator
         tree = ET.parse(xml)
         root = tree.getroot()
         result = {}
-        result.update(details_statement(root))
-        logMessage(str(result))
+        result.update(detailsStatement(root))
         if root.tag == 'extract_about_property_land':
-            pass
+            result.update(parseEapl(root))
+            l = LayerCreator.createLandsLayer()
+            LayerCreator.loadData(l, result)
+        #logMessage(str(result))
