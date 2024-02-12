@@ -84,16 +84,9 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.importButton.setEnabled(True)
 
     def on_analizeButton_clicked(self):
+        logMessage('fff')
         from .parser_1 import Parser
         if self.selectFileWidget.filePath():
           with open(self.selectFileWidget.filePath(), encoding="utf8") as f:
               type = Parser.getFileType(f)
               self.info.setText(type['name'])
-
-    def on_importButton_clicked(self):
-        logMessage('fff')
-        from .parser_1 import Parser
-        from .cadaster_import import CadasterImport
-        if self.selectFileWidget.filePath():
-            with open(self.selectFileWidget.filePath(), encoding="utf8") as f:
-                Parser.parse(f)

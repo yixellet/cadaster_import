@@ -29,6 +29,7 @@ from .resources import *
 
 # Import the code for the DockWidget
 from .cadaster_import_dockwidget import CadasterImportDockWidget
+from .cadaster_import_utils import logMessage
 import os.path
 
 
@@ -68,7 +69,7 @@ class CadasterImport:
         self.toolbar = self.iface.addToolBar(u'CadasterImport')
         self.toolbar.setObjectName(u'CadasterImport')
 
-        #print "** INITIALIZING CadasterImport"
+        print("** INITIALIZING CadasterImport")
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -173,6 +174,11 @@ class CadasterImport:
             text=self.tr(u'Import Cadaster XML'),
             callback=self.run,
             parent=self.iface.mainWindow())
+        if self.dockwidget == None:
+            # Create the dockwidget (after translation) and keep reference
+            self.dockwidget = CadasterImportDockWidget()
+
+            self.dockwidget.importButton.clicked.connect(self.on_importButton_clicked)
 
     #--------------------------------------------------------------------------
 
@@ -214,7 +220,7 @@ class CadasterImport:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            #print "** STARTING CadasterImport"
+            print("** STARTING CadasterImport")
 
             # dockwidget may not exist if:
             #    first run of plugin
@@ -231,7 +237,11 @@ class CadasterImport:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
-    
-    def p(self, f):
+
+    def on_importButton_clicked(self):
+        logMessage('fff')
         from .parser_1 import Parser
-        Parser.parse(f, self.iface)
+        from .cadaster_import import CadasterImport
+        if self.dockwidget.selectFileWidget.filePath():
+            with open(self.dockwidget.selectFileWidget.filePath(), encoding="utf8") as f:
+                Parser.parse(f)
