@@ -235,6 +235,9 @@
          </item>
          <item>
           <widget class="QgsFileWidget" name="selectFileWidget">
+           <property name="filter">
+            <string notr="true"/>
+           </property>
            <property name="storageMode">
             <enum>QgsFileWidget::GetFile</enum>
            </property>

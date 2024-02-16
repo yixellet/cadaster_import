@@ -110,6 +110,7 @@ class Ui_CadasterImportDockWidgetBase(object):
         self.selectFileLabel.setObjectName("selectFileLabel")
         self.selectFileLayout.addWidget(self.selectFileLabel)
         self.selectFileWidget = gui.QgsFileWidget(self.layoutWidget3)
+        self.selectFileWidget.setFilter("")
         self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetFile)
         self.selectFileWidget.setObjectName("selectFileWidget")
         self.selectFileLayout.addWidget(self.selectFileWidget)

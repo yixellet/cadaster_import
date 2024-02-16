@@ -49,6 +49,7 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.selectFileWidget.setFilter('*.xml')
     
     def on_batchImportRadioButton_toggled(self):
         _translate = QCoreApplication.translate
@@ -84,7 +85,6 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.importButton.setEnabled(True)
 
     def on_analizeButton_clicked(self):
-        logMessage('fff')
         from .parser_1 import Parser
         if self.selectFileWidget.filePath():
           with open(self.selectFileWidget.filePath(), encoding="utf8") as f:

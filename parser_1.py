@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-
 from .cadaster_import_utils import logMessage
 
 class Parser():
@@ -34,28 +33,23 @@ class Parser():
         }
     }
 
-    def __init__(self):
-        pass
+    def __init__(self, xml):
+        self.xml = xml
 
-    @classmethod
-    def getFileType(self, xml):
-        tree = ET.parse(xml)
+    def getFileType(self):
+        tree = ET.parse(self.xml)
         root = tree.getroot()
-        self.result = {'type': root.tag, 'name': self.FILE_TYPES[root.tag]['name']}
-        #logMessage(str(result))
-        return self.result
+        
+        return root.tag
     
-    @classmethod
-    def parse(self, xml):
+    def parse(self):
         from .parser_elements.details_statement import detailsStatement
         from .parser_elements.parse_eapl import parseEapl
-        from .loaders.layer_creator import LayerCreator
-        tree = ET.parse(xml)
+        tree = ET.parse(self.xml)
         root = tree.getroot()
         result = {}
         result.update(detailsStatement(root))
         if root.tag == 'extract_about_property_land':
             result.update(parseEapl(root))
-            l = LayerCreator.createLandsLayer()
-            LayerCreator.loadData(l, result)
-        #logMessage(str(result))
+
+        return result

@@ -24,6 +24,7 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from qgis.core import QgsProject
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -31,6 +32,7 @@ from .resources import *
 from .cadaster_import_dockwidget import CadasterImportDockWidget
 from .cadaster_import_utils import logMessage
 import os.path
+import os
 
 
 class CadasterImport:
@@ -239,9 +241,38 @@ class CadasterImport:
 
 
     def on_importButton_clicked(self):
-        logMessage('fff')
+        import xml.etree.ElementTree as ET
+        from .loaders.layer_creator import LayerCreator
         from .parser_1 import Parser
-        from .cadaster_import import CadasterImport
         if self.dockwidget.selectFileWidget.filePath():
-            with open(self.dockwidget.selectFileWidget.filePath(), encoding="utf8") as f:
-                Parser.parse(f)
+            l = LayerCreator.createLandsLayer()
+            file_path = self.dockwidget.selectFileWidget.filePath()
+            storage_mode = str(self.dockwidget.selectFileWidget.storageMode())
+            if storage_mode == '0':
+                with open(file_path, encoding="utf8") as f:
+                    p = Parser(f)
+                    #if p.getFileType() == 'extract_about_property_land':
+                    result = p.parse()
+                    LayerCreator.loadData(l, result)
+
+            if storage_mode == '1':
+                content = os.listdir(file_path)
+                for item in content:
+                    path = os.path.join(file_path, item)
+                    if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
+                        with open(path, encoding="utf8") as f:
+                            if Parser.getFileType(f)['type'] == 'extract_about_property_land':
+                                result = Parser.parse(f)
+                                LayerCreator.loadData(l, result)
+
+                    if os.path.isdir(path):
+                        files = os.listdir(path)
+                        for file in files:
+                            if os.path.splitext(file)[1] == '.xml':
+                                with open(os.path.join(path, file), encoding="utf8") as f:
+                                    if Parser.getFileType(f)['type'] == 'extract_about_property_land':
+                                        #logMessage(f)
+                                        result = Parser.parse(f)
+                                        LayerCreator.loadData(l, result)
+            QgsProject.instance().addMapLayer(l)
+
