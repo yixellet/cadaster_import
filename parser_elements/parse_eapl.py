@@ -2,12 +2,13 @@ from .cad_work import cadWork
 from .address import address
 from .record_info import recordInfo
 from .common_data import commonData
-from .params import params
+from .land_params import landParams
 from .cad_link import cadLink
+from .contours import contours
 
 def parseEapl(root):
     '''
-    Извлекает геометрию
+    Парсит КВЗУ
     '''
     result = {}
     lr = root.find('land_record')
@@ -20,7 +21,7 @@ def parseEapl(root):
     result.update(commonData(object))
 
     # Параметры участка
-    result.update(params(lr))
+    result.update(landParams(lr))
 
     # Сведения о кадастровом инженере
     if lr.find('cad_works') != None:
@@ -38,7 +39,7 @@ def parseEapl(root):
         result['descendant_cad_numbers'] = cadLink(lr.find('cad_links'), 'descendant_cad_numbers')
         result['included_objects'] = cadLink(lr.find('cad_links'), 'included_objects')
         result['facility_cad_number'] = cadLink(lr.find('cad_links'), 'facility_cad_number')
-        result['old_numbers'] = cadLink(lr.find('cad_links'), 'old_numbers')
+        #result['old_numbers'] = cadLink(lr.find('cad_links'), 'old_numbers')
         if lr.find('cad_links').find('common_land') != None:
             result['common_land'] = cadLink(lr.find('cad_links').find('common_land').find('common_land_parts'), 'included_cad_numbers')
         else:
@@ -48,7 +49,7 @@ def parseEapl(root):
         result['descendant_cad_numbers'] = None
         result['included_objects'] = None
         result['facility_cad_number'] = None
-        result['old_numbers'] = None
+        #result['old_numbers'] = None
         result['common_land'] = None
 
     # Сведения об адресном ориентире
@@ -61,20 +62,8 @@ def parseEapl(root):
 
     # Описание местоположения границ ЗУ
     if lr.find('contours_location') != None:
-        contAr = []
-        for p in lr.find('contours_location').find('contours').findall('contour'):
-            esArr = []
-            es = p.find('entity_spatial')
-            for e in es.find('spatials_elements').findall('spatial_element'):
-                elAr = []
-                for o in e.find('ordinates').findall('ordinate'):
-                    elAr.append(' '.join([o.find('y').text, o.find('x').text]))
-                elementWKT = '(' + ','.join(elAr) + ')'
-                esArr.append(elementWKT)
-            contourWKT = '(' + ','.join(esArr) + ')'
-            contAr.append(contourWKT)
-        geomWKT = 'MULTIPOLYGON(' + ','.join(contAr) + ')'
-        result['geom'] = geomWKT
+        result['geom'] = contours(lr.find('contours_location').find('contours'))
     else:
         result['geom'] = None
+
     return result

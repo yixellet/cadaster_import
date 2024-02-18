@@ -71,10 +71,40 @@ fields = {
         'name': 'area',
         'desc': 'Площадь'
     },
+    'volume': {
+        'type': QVariant.Int,
+        'name': 'volume',
+        'desc': 'Объем'
+    },
+    'built_up_area': {
+        'type': QVariant.Double,
+        'name': 'built_up_area',
+        'desc': 'Площадь застройки'
+    },
+    'height': {
+        'type': QVariant.Double,
+        'name': 'height',
+        'desc': 'Высота'
+    },
+    'depth': {
+        'type': QVariant.Double,
+        'name': 'depth',
+        'desc': 'Глубина'
+    },
+    'occurence_depth': {
+        'type': QVariant.Double,
+        'name': 'occurence_depth',
+        'desc': 'Глубина залегания'
+    },
     'area_inaccuracy': {
         'type': QVariant.Double,
         'name': 'area_inaccuracy',
         'desc': 'Погрешность площади'
+    },
+    'extension': {
+        'type': QVariant.Double,
+        'name': 'extension',
+        'desc': 'Протяженность'
     },
     'area_type': {
         'type': QVariant.String,
@@ -140,5 +170,45 @@ fields = {
         'type': QVariant.String,
         'name': 'common_land',
         'desc': 'Единое землепользование'
+    },
+    'land_cad_numbers': {
+        'type': QVariant.String,
+        'name': 'land_cad_numbers',
+        'desc': 'Кадастровые номера иных объектов недвижимости (земельных участков)'
+    },
+    'common_land': {
+        'type': QVariant.String,
+        'name': 'common_land',
+        'desc': 'Единое землепользование'
+    },
+    'floors': {
+        'type': QVariant.String,
+        'name': 'floors',
+        'desc': 'Количество этажей'
+    },
+    'underground_floors': {
+        'type': QVariant.String,
+        'name': 'underground_floors',
+        'desc': 'Количество подземных этажей'
+    },
+    'purpose': {
+        'type': QVariant.String,
+        'name': 'purpose',
+        'desc': 'Назначение сооружения'
+    },
+    'name': {
+        'type': QVariant.String,
+        'name': 'name',
+        'desc': 'Наименование сооружения'
+    },
+    'year_built': {
+        'type': QVariant.String,
+        'name': 'year_built',
+        'desc': 'Год завершения строительства'
+    },
+    'year_commisioning': {
+        'type': QVariant.String,
+        'name': 'year_commisioning',
+        'desc': 'Год ввода в эксплуатацию'
     },
 }

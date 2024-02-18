@@ -1,4 +1,7 @@
 import xml.etree.ElementTree as ET
+from .parser_elements.details_statement import detailsStatement
+from .parser_elements.parse_eapl import parseEapl
+from .parser_elements.parse_eapc import parseEapc
 from .cadaster_import_utils import logMessage
 
 class Parser():
@@ -34,22 +37,18 @@ class Parser():
     }
 
     def __init__(self, xml):
-        self.xml = xml
+        self.tree = ET.parse(xml)
+        self.root = self.tree.getroot()
 
     def getFileType(self):
-        tree = ET.parse(self.xml)
-        root = tree.getroot()
-        
-        return root.tag
+        return self.root.tag
     
     def parse(self):
-        from .parser_elements.details_statement import detailsStatement
-        from .parser_elements.parse_eapl import parseEapl
-        tree = ET.parse(self.xml)
-        root = tree.getroot()
         result = {}
-        result.update(detailsStatement(root))
-        if root.tag == 'extract_about_property_land':
-            result.update(parseEapl(root))
+        result.update(detailsStatement(self.root))
+        if self.root.tag == 'extract_about_property_land':
+            result.update(parseEapl(self.root))
+        if self.root.tag == 'extract_about_property_construction':
+            result.update(parseEapc(self.root))
 
         return result

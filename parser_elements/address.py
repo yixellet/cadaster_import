@@ -2,7 +2,15 @@ from .dict import dict
 
 def getAddressPart(element, type):
     e = element.find(type)
-    return e.find(type).find('type_{}'.format(type)).text + e.find(type).find('name_{}'.format(type)).text
+    if e.find('type_{}'.format(type)):
+        typeStr = e.find('type_{}'.format(type)).text
+    else:
+        typeStr = ''
+    if e.find('name_{}'.format(type)):
+        nameStr = e.find('name_{}'.format(type)).text
+    else:
+        nameStr = ''
+    return typeStr + ' ' + nameStr
 
 def address(element):
     '''
@@ -75,37 +83,45 @@ def address(element):
         else:
             afobj['locality'] = None
         
-        dl = af.find('detailed_level')
-        if dl.find('street') != None:
-            afobj['street'] = getAddressPart(ls, 'street')
+        if af.find('detailed_level') != None:
+            dl = af.find('detailed_level')
+            if dl.find('street') != None:
+                afobj['street'] = getAddressPart(dl, 'street')
+            else:
+                afobj['street'] = None
+            if dl.find('Level1') != None:
+                afobj['Level1'] = getAddressPart(dl, 'Level1')
+            else:
+                afobj['Level1'] = None
+            if dl.find('Level2') != None:
+                afobj['Level2'] = getAddressPart(dl, 'Level2')
+            else:
+                afobj['Level2'] = None
+            if dl.find('Level3') != None:
+                afobj['Level3'] = getAddressPart(dl, 'Level3')
+            else:
+                afobj['Level3'] = None
+            if dl.find('apartment') != None:
+                afobj['apartment'] = getAddressPart(dl, 'apartment')
+            else:
+                afobj['apartment'] = None
+            if dl.find('other') != None:
+                afobj['other'] = dl.find('other').text
+            else:
+                afobj['other'] = None
         else:
             afobj['street'] = None
-        if dl.find('Level1') != None:
-            afobj['Level1'] = getAddressPart(ls, 'Level1')
-        else:
             afobj['Level1'] = None
-        if dl.find('Level2') != None:
-            afobj['Level2'] = getAddressPart(ls, 'Level2')
-        else:
             afobj['Level2'] = None
-        if dl.find('Level3') != None:
-            afobj['Level3'] = getAddressPart(ls, 'Level3')
-        else:
             afobj['Level3'] = None
-        if dl.find('apartment') != None:
-            afobj['apartment'] = getAddressPart(ls, 'apartment')
-        else:
             afobj['apartment'] = None
-        if dl.find('other') != None:
-            afobj['other'] = dl.find('other').text
-        else:
             afobj['other'] = None
 
         ad['address_fias'] = afobj
     else:
         ad['address_fias'] = None
 
-    obj['address'] = ad
+    obj['address'] = str(ad)
 
     # Местоположение относительно ориентира
     if element.find('rel_position') != None:
@@ -123,7 +139,7 @@ def address(element):
             objj['location_description'] = rp.find('location_description').text
         else:
             objj['location_description'] = None
-        obj['rel_position'] = objj
+        obj['rel_position'] = str(objj)
     else:
         obj['rel_position'] = None
 

@@ -30,9 +30,12 @@ from .resources import *
 
 # Import the code for the DockWidget
 from .cadaster_import_dockwidget import CadasterImportDockWidget
-from .cadaster_import_utils import logMessage
+from .parser_1 import Parser
+from .loaders.layer_creator import LayerCreator
 import os.path
 import os
+
+from .cadaster_import_utils import logMessage
 
 
 class CadasterImport:
@@ -239,40 +242,51 @@ class CadasterImport:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
+    def filesOperation(self, file):
+        p = Parser(file)
+        if p.getFileType() == 'extract_about_property_land':
+            result = p.parse()
+            LayerCreator.loadData(self.landsLayer, result)
+        elif p.getFileType() == 'extract_about_property_construction':
+            result = p.parse()
+            #logMessage(str(result))
+            if result['geom'][5:8] == 'LIN':
+                LayerCreator.loadConstrData(self.constrLineLayer, result)
+            if result['geom'][5:8] == 'POL':
+                LayerCreator.loadConstrData(self.constrPolyLayer, result)
 
     def on_importButton_clicked(self):
-        import xml.etree.ElementTree as ET
-        from .loaders.layer_creator import LayerCreator
-        from .parser_1 import Parser
         if self.dockwidget.selectFileWidget.filePath():
-            l = LayerCreator.createLandsLayer()
+            self.landsLayer = LayerCreator.createLandsLayer()
+            self.constrPolyLayer = LayerCreator.createConstructionsPolygonLayer()
+            self.constrLineLayer = LayerCreator.createConstructionsLineLayer()
             file_path = self.dockwidget.selectFileWidget.filePath()
             storage_mode = str(self.dockwidget.selectFileWidget.storageMode())
             if storage_mode == '0':
                 with open(file_path, encoding="utf8") as f:
-                    p = Parser(f)
-                    #if p.getFileType() == 'extract_about_property_land':
-                    result = p.parse()
-                    LayerCreator.loadData(l, result)
+                    self.filesOperation(f)
 
             if storage_mode == '1':
                 content = os.listdir(file_path)
+                self.dockwidget.progressBar.setRange(0, len(content))
+                current_value = 0
                 for item in content:
+                    current_value += 1
                     path = os.path.join(file_path, item)
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
                         with open(path, encoding="utf8") as f:
-                            if Parser.getFileType(f)['type'] == 'extract_about_property_land':
-                                result = Parser.parse(f)
-                                LayerCreator.loadData(l, result)
+                            self.filesOperation(f)
 
                     if os.path.isdir(path):
                         files = os.listdir(path)
                         for file in files:
                             if os.path.splitext(file)[1] == '.xml':
                                 with open(os.path.join(path, file), encoding="utf8") as f:
-                                    if Parser.getFileType(f)['type'] == 'extract_about_property_land':
-                                        #logMessage(f)
-                                        result = Parser.parse(f)
-                                        LayerCreator.loadData(l, result)
-            QgsProject.instance().addMapLayer(l)
+                                    self.filesOperation(f)
+                    self.dockwidget.progressBar.setValue(current_value)
+                self.dockwidget.progressBar.reset()
+                self.dockwidget.progressBar.setValue(0)
+            QgsProject.instance().addMapLayer(self.landsLayer)
+            QgsProject.instance().addMapLayer(self.constrPolyLayer)
+            QgsProject.instance().addMapLayer(self.constrLineLayer)
 

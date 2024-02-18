@@ -1,6 +1,6 @@
 from .dict import dict
 
-def params(el):
+def landParams(el):
     '''
     Извлекает Характеристики земельного участка
     '''

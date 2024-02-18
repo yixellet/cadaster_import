@@ -8,10 +8,13 @@ def cadLink(element, type):
     if element.find(type) != None:
         io = element.find(type)
         array = []
-        for e in io.findall(type[:-1]):
-            cn = e.find('cad_number').text
-            cns = re.split('[,;]\s*', cn)
-            array = array + cns
+        if type in ('facility_cad_number', 'united_cad_number'):
+            array = io.find('cad_number').text
+        else:
+            for e in io.findall(type[:-1]):
+                cn = e.find('cad_number').text
+                cns = re.split('[,;]\s*', cn)
+                array = array + cns
     else:
         array = None
 
