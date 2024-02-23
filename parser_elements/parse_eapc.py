@@ -56,7 +56,7 @@ def parseEapc(root):
         result['united_cad_number'] = None
 
     # Сведения об адресном ориентире
-    logMessage(result['cad_number'])
+    #logMessage(result['cad_number'])
     if cr.find('address_location') != None:
         result.update(address(cr.find('address_location')))
     else:

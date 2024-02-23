@@ -183,6 +183,7 @@ class CadasterImport:
             # Create the dockwidget (after translation) and keep reference
             self.dockwidget = CadasterImportDockWidget()
 
+            self.dockwidget.analizeButton.clicked.connect(self.analize)
             self.dockwidget.importButton.clicked.connect(self.on_importButton_clicked)
 
     #--------------------------------------------------------------------------
@@ -244,24 +245,25 @@ class CadasterImport:
 
     def filesOperation(self, file):
         p = Parser(file)
-        if p.getFileType() == 'extract_about_property_land':
+        if p.getFileType()['tag'] == 'extract_about_property_land':
             result = p.parse()
-            LayerCreator.loadData(self.landsLayer, result)
-        elif p.getFileType() == 'extract_about_property_construction':
+            # logMessage(str(result['cad_number']))
+            LayerCreator.loadData(self.landsLayer, result, 'land')
+        elif p.getFileType()['tag'] == 'extract_about_property_construction':
             result = p.parse()
-            #logMessage(str(result))
+            # logMessage(str(result))
             if result['geom'][5:8] == 'LIN':
-                LayerCreator.loadConstrData(self.constrLineLayer, result)
+                LayerCreator.loadData(self.constrLineLayer, result, 'construction')
             if result['geom'][5:8] == 'POL':
-                LayerCreator.loadConstrData(self.constrPolyLayer, result)
+                LayerCreator.loadData(self.constrPolyLayer, result, 'construction')
 
     def on_importButton_clicked(self):
-        if self.dockwidget.selectFileWidget.filePath():
+        if self.dockwidget.selectDirectoryWidget.filePath():
             self.landsLayer = LayerCreator.createLandsLayer()
             self.constrPolyLayer = LayerCreator.createConstructionsPolygonLayer()
             self.constrLineLayer = LayerCreator.createConstructionsLineLayer()
-            file_path = self.dockwidget.selectFileWidget.filePath()
-            storage_mode = str(self.dockwidget.selectFileWidget.storageMode())
+            file_path = self.dockwidget.selectDirectoryWidget.filePath()
+            storage_mode = str(self.dockwidget.selectDirectoryWidget.storageMode())
             if storage_mode == '0':
                 with open(file_path, encoding="utf8") as f:
                     self.filesOperation(f)
@@ -289,4 +291,37 @@ class CadasterImport:
             QgsProject.instance().addMapLayer(self.landsLayer)
             QgsProject.instance().addMapLayer(self.constrPolyLayer)
             QgsProject.instance().addMapLayer(self.constrLineLayer)
+
+    def analize(self):
+        dirPath = self.dockwidget.selectDirectoryWidget.filePath()
+        self.xmlFilesCount = 0
+        summary = {}
+        def recursion(dirPath):
+            content = os.listdir(dirPath)
+            for i in content:
+                iPath = os.path.join(dirPath, i)
+                if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
+                    self.xmlFilesCount += 1
+                    with open(iPath) as file:
+                        parser = Parser(file)
+                        type = parser.getFileType()
+                        if type['tag'] in summary.keys():
+                            summary[type['tag']]['count'] += 1
+                        else:
+                            summary[type['tag']] = {'name': type['name'], 'count': 1}
+                if os.path.isdir(iPath):
+                    recursion(iPath)
+        recursion(dirPath)
+        
+        typesString = ''
+        for i in summary.values():
+            typesString += '<li>{} - <span style="font-weight: 700">{}<\span></li>'.format(i['name'], i['count'])
+        self.dockwidget.info.setHtml('''
+            <p>Обнаружено XML файлов:<span style="font-weight: 700"> {}</span>, из них:</p>
+            <ul style="padding: 0">
+                {}
+            </ul>
+
+        '''.format(self.xmlFilesCount, typesString))
+
 

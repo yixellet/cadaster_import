@@ -10,7 +10,13 @@ class LayerCreator():
                   'cad_number', 'land_cad_numbers', 'extension', 
                   'area', 'built_up_area', 'depth', 'occurence_depth', 
                   'volume', 'height', 'floors', 'underground_floors', 
-                  'purpose', 'name', 'year_built', 'year_commisioning']
+                  'purpose', 'name', 'year_built', 'year_commisioning'],
+        'land': ['registration_number', 'date_formation', 'cad_works', 'address', 
+                  'registration_date', 'cancel_date', 'address_type', 'rel_position',
+                  'cad_number', 'type', 'area_inaccuracy', 
+                  'area', 'area_type', 'land_use_by_document', 'land_use', 
+                  'land_use_mer', 'gr_reg_numb_border', 'gr_land_use', 'gr_permitted_use_text', 
+                  'ascendant_cad_numbers', 'descendant_cad_numbers', 'included_objects', 'facility_cad_number', 'common_land']
     }
     def __init__(self):
         pass
@@ -48,7 +54,7 @@ class LayerCreator():
         return vl
 
     @classmethod
-    def loadData(self, layer, data):
+    def loadLandsData(self, layer, data):
         feat = QgsFeature()
         if data['geom'] != None:
             feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
@@ -82,11 +88,11 @@ class LayerCreator():
         layer.updateExtents()
 
     @classmethod
-    def loadConstrData(self, layer, data):
+    def loadData(self, layer, data, type):
         feat = QgsFeature()
         if data['geom'] != None:
             feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
-        for idx, field in enumerate(self.FIELDS['construction']):
+        for idx, field in enumerate(self.FIELDS[type]):
             #logMessage(field + '\t' + data[field])
             feat.setAttributes([data[field]]) 
         layer.dataProvider().addFeature(feat)

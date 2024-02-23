@@ -2,7 +2,6 @@ import xml.etree.ElementTree as ET
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
-from .cadaster_import_utils import logMessage
 
 class Parser():
     
@@ -41,7 +40,7 @@ class Parser():
         self.root = self.tree.getroot()
 
     def getFileType(self):
-        return self.root.tag
+        return {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
     
     def parse(self):
         result = {}

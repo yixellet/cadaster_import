@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>393</width>
+    <width>391</width>
     <height>831</height>
    </rect>
   </property>
@@ -23,81 +23,11 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QGroupBox" name="projectionGroupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>370</y>
-         <width>351</width>
-         <height>191</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Проекция</string>
-       </property>
-       <widget class="QWidget" name="layoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>11</x>
-          <y>31</y>
-          <width>331</width>
-          <height>50</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="sourceProjectionLayout">
-         <item>
-          <widget class="QLabel" name="sourceProjectionLabel">
-           <property name="text">
-            <string>Исходная проекция</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidget"/>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="layoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>130</y>
-          <width>331</width>
-          <height>50</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="importProjectionLayout">
-         <item>
-          <widget class="QLabel" name="importProjectionLabel">
-           <property name="text">
-            <string>Проекция импорта</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QgsProjectionSelectionWidget" name="importProjectionSelectionWidget"/>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QCheckBox" name="withoutTransformCheck">
-        <property name="geometry">
-         <rect>
-          <x>11</x>
-          <y>94</y>
-          <width>249</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Без преобразования координат</string>
-        </property>
-       </widget>
-      </widget>
       <widget class="QGroupBox" name="importToGroupBox">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>190</y>
+         <y>300</y>
          <width>351</width>
          <height>161</height>
         </rect>
@@ -204,83 +134,6 @@
         </widget>
        </widget>
       </widget>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>351</width>
-         <height>141</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Что импортировать</string>
-       </property>
-       <widget class="QWidget" name="layoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>70</y>
-          <width>331</width>
-          <height>50</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="selectFileLayout">
-         <item>
-          <widget class="QLabel" name="selectFileLabel">
-           <property name="text">
-            <string>Выберите файл</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QgsFileWidget" name="selectFileWidget">
-           <property name="filter">
-            <string notr="true"/>
-           </property>
-           <property name="storageMode">
-            <enum>QgsFileWidget::GetFile</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="layoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>331</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QRadioButton" name="importFileRadioButton">
-           <property name="text">
-            <string>Один файл</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">importModeGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="batchImportRadioButton">
-           <property name="text">
-            <string>Пакетный импорт</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">importModeGroup</string>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
       <widget class="QPushButton" name="analizeButton">
        <property name="enabled">
         <bool>false</bool>
@@ -288,20 +141,20 @@
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>160</y>
+         <y>90</y>
          <width>121</width>
          <height>25</height>
         </rect>
        </property>
        <property name="text">
-        <string>Анализ файла</string>
+        <string>Анализ файлов</string>
        </property>
       </widget>
       <widget class="QTextEdit" name="info">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>570</y>
+         <y>130</y>
          <width>351</width>
          <height>151</height>
         </rect>
@@ -309,6 +162,38 @@
        <property name="readOnly">
         <bool>true</bool>
        </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>351</width>
+         <height>50</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="selectFileLayout">
+        <item>
+         <widget class="QLabel" name="selectDirectoryLabel">
+          <property name="text">
+           <string>Выберите директорию</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QgsFileWidget" name="selectDirectoryWidget">
+          <property name="filter">
+           <string notr="true"/>
+          </property>
+          <property name="storageMode">
+           <enum>QgsFileWidget::GetDirectory</enum>
+          </property>
+          <property name="options">
+           <set>QFileDialog::ShowDirsOnly</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -331,7 +216,10 @@
     <item row="2" column="0">
      <widget class="QPushButton" name="cancelButton">
       <property name="text">
-       <string>Отмена</string>
+       <string>Справка</string>
+      </property>
+      <property name="icon">
+       <iconset theme="QgsApplication.getThemeIcon(&quot;mActionHelpContents.svg&quot;)"/>
       </property>
       <property name="shortcut">
        <string>Esc</string>
@@ -354,47 +242,9 @@
    <extends>QWidget</extends>
    <header>qgsfilewidget.h</header>
   </customwidget>
-  <customwidget>
-   <class>QgsProjectionSelectionWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsprojectionselectionwidget.h</header>
-  </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>batchImportRadioButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>selectFileWidget</receiver>
-   <slot>show()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>278</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>194</x>
-     <y>144</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>batchImportRadioButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>selectFileLabel</receiver>
-   <slot>show()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>278</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>194</x>
-     <y>117</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <buttongroups>
   <buttongroup name="importModeGroup"/>
   <buttongroup name="importTargetGroup"/>

@@ -26,11 +26,8 @@ from __future__ import absolute_import
 import os
 
 from qgis import gui
-from qgis.core import QgsSettings, Qgis
-from qgis.PyQt import QtGui, QtWidgets, uic
+from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication
-
-from .cadaster_import_utils import logMessage
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'cadaster_import_dockwidget_base.ui'))
@@ -49,26 +46,6 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.selectFileWidget.setFilter('*.xml')
-    
-    def on_batchImportRadioButton_toggled(self):
-        _translate = QCoreApplication.translate
-        self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите папку"))
-        self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetDirectory)
-    
-    def on_importFileRadioButton_toggled(self):
-        _translate = QCoreApplication.translate
-        self.selectFileLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите файл"))
-        self.selectFileWidget.setStorageMode(gui.QgsFileWidget.GetFile)
-        self.selectFileWidget.setFilter('*.xml')
-    
-    def on_withoutTransformCheck_stateChanged(self):
-        if self.withoutTransformCheck.isChecked():
-            self.importProjectionLabel.setVisible(False)
-            self.importProjectionSelectionWidget.setVisible(False)
-        else:
-            self.importProjectionLabel.setVisible(True)
-            self.importProjectionSelectionWidget.setVisible(True)
     
     def on_importToDB_toggled(self):
         self.dbFrame.setVisible(True)
@@ -80,13 +57,10 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.closingPlugin.emit()
         event.accept()
 
-    def on_selectFileWidget_fileChanged(self):
-        self.analizeButton.setEnabled(True)
-        self.importButton.setEnabled(True)
-
-    def on_analizeButton_clicked(self):
-        from .parser_1 import Parser
-        if self.selectFileWidget.filePath():
-          with open(self.selectFileWidget.filePath(), encoding="utf8") as f:
-              type = Parser.getFileType(f)
-              self.info.setText(type['name'])
+    def on_selectDirectoryWidget_fileChanged(self):
+        if self.selectDirectoryWidget.filePath():
+            self.analizeButton.setEnabled(True)
+            self.importButton.setEnabled(True)
+        else:
+            self.analizeButton.setEnabled(False)
+            self.importButton.setEnabled(False)

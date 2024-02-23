@@ -26,7 +26,16 @@ def transform(coords, zone=1):
         wgs = 'ERROR'
     return wgs
 
-def contours(element):
+def analizeGeometry(element):
+    '''
+    Анализирует геометрию. Определяет:
+        1. тип (линия или полигон)
+        2. СК, указанную в XML
+        3. извлекает образцы координат разных видов
+    '''
+    result = {}
+
+def contours(element, transformate=True):
     '''
     Извлекает геометрию
     '''
@@ -37,12 +46,17 @@ def contours(element):
         es = p.find('entity_spatial')
         for e in es.find('spatials_elements').findall('spatial_element'):
             ordinatesArray = []
+            ordinatesArrayMSK = []
             for o in e.find('ordinates').findall('ordinate'):
-                transformedOrdinate = transform([o.find('x').text, o.find('y').text], int(o.find('y').text[0]))
+                if transformate:
+                    transformedOrdinate = transform([o.find('x').text, o.find('y').text], int(o.find('y').text[0]))
+                else:
+                    transformedOrdinate = (o.find('x').text, o.find('y').text)
                 ordinatesArray.append(' '.join([str(transformedOrdinate[1]), str(transformedOrdinate[0])]))
+                ordinatesArrayMSK.append([float(o.find('x').text), float(o.find('y').text)])
             elementWKT = '(' + ','.join(ordinatesArray) + ')'
             spatialElementsArray.append(elementWKT)
-            geomType = defineGeometryType(ordinatesArray)
+            geomType = defineGeometryType(ordinatesArrayMSK)
         if geomType == 1:
             contourWKT = '(' + ','.join(spatialElementsArray) + ')'
             contoursArray.append(contourWKT)
