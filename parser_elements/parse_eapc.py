@@ -39,7 +39,7 @@ def parseEapc(root):
     if cr.find('cad_links') != None:
         result['ascendant_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'ascendant_cad_numbers'))
         result['descendant_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'descendant_cad_numbers'))
-        result['land_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'included_objects'))
+        result['land_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'land_cad_numbers'))
         result['room_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'room_cad_numbers'))
         result['car_parking_space_cad_numbers'] = str(cadLink(cr.find('cad_links'), 'car_parking_space_cad_numbers'))
         result['facility_cad_number'] = str(cadLink(cr.find('cad_links'), 'facility_cad_number'))

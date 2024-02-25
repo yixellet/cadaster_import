@@ -60,7 +60,7 @@ class CadasterImportDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def on_selectDirectoryWidget_fileChanged(self):
         if self.selectDirectoryWidget.filePath():
             self.analizeButton.setEnabled(True)
-            self.importButton.setEnabled(True)
+            # self.importButton.setEnabled(True)
         else:
             self.analizeButton.setEnabled(False)
-            self.importButton.setEnabled(False)
+            # self.importButton.setEnabled(False)

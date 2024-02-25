@@ -50,7 +50,7 @@ def constructionParams(el):
     land['volume'] = None
     land['height'] = None
     if element.find('base_parameters') != None:
-        for param in element.find('base_parameters').find('base_parameter'):
+        for param in element.find('base_parameters').findall('base_parameter'):
             for child in param:
                 land[child.tag] = child.text
     

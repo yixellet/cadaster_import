@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
+from .parser_elements.contours import getGeometryInfo
 
 class Parser():
     
@@ -30,6 +31,9 @@ class Parser():
         'extract_about_property_unified_real_estate_complex': {
             'name': 'Кадастровая выписка о едином недвижимом комплексе'
         },
+        'extract_about_zone': {
+            'name': 'Выписка о зоне с особыми условиями использования территорий'
+        },
         'extract_cadastral_plan_territory': {
             'name': 'Кадастровый план территории'
         }
@@ -51,3 +55,12 @@ class Parser():
             result.update(parseEapc(self.root))
 
         return result
+    
+    def extractGeometryInfo(self):
+        if self.root.tag == 'extract_about_property_construction':
+            if self.root.find('construction_record').find('contours'):
+                return getGeometryInfo(self.root.find('construction_record').find('contours'))
+        if self.root.tag == 'extract_about_property_land':
+            if self.root.find('land_record').find('contours_location'):
+                return getGeometryInfo(self.root.find('land_record').find('contours_location').find('contours'))
+        return None

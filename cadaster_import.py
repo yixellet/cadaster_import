@@ -24,7 +24,6 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
-from qgis.core import QgsProject
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -78,6 +77,7 @@ class CadasterImport:
 
         self.pluginIsActive = False
         self.dockwidget = None
+        self.summary = {}
 
 
     # noinspection PyMethodMayBeStatic
@@ -182,7 +182,6 @@ class CadasterImport:
         if self.dockwidget == None:
             # Create the dockwidget (after translation) and keep reference
             self.dockwidget = CadasterImportDockWidget()
-
             self.dockwidget.analizeButton.clicked.connect(self.analize)
             self.dockwidget.importButton.clicked.connect(self.on_importButton_clicked)
 
@@ -258,10 +257,15 @@ class CadasterImport:
                 LayerCreator.loadData(self.constrPolyLayer, result, 'construction')
 
     def on_importButton_clicked(self):
-        if self.dockwidget.selectDirectoryWidget.filePath():
+        if 'extract_about_property_land' in self.summary.keys():
             self.landsLayer = LayerCreator.createLandsLayer()
-            self.constrPolyLayer = LayerCreator.createConstructionsPolygonLayer()
-            self.constrLineLayer = LayerCreator.createConstructionsLineLayer()
+        if 'extract_about_property_construction' in self.summary.keys():
+            if 'polygon' in self.summary['extract_about_property_construction']['geometryType']:
+                self.constrPolyLayer = LayerCreator.createConstructionsPolygonLayer()
+            if 'line' in self.summary['extract_about_property_construction']['geometryType']:
+                self.constrLineLayer = LayerCreator.createConstructionsLineLayer()
+        
+        if self.dockwidget.selectDirectoryWidget.filePath():
             file_path = self.dockwidget.selectDirectoryWidget.filePath()
             storage_mode = str(self.dockwidget.selectDirectoryWidget.storageMode())
             if storage_mode == '0':
@@ -288,14 +292,11 @@ class CadasterImport:
                     self.dockwidget.progressBar.setValue(current_value)
                 self.dockwidget.progressBar.reset()
                 self.dockwidget.progressBar.setValue(0)
-            QgsProject.instance().addMapLayer(self.landsLayer)
-            QgsProject.instance().addMapLayer(self.constrPolyLayer)
-            QgsProject.instance().addMapLayer(self.constrLineLayer)
 
     def analize(self):
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
         self.xmlFilesCount = 0
-        summary = {}
+        # self.summary = {}
         def recursion(dirPath):
             content = os.listdir(dirPath)
             for i in content:
@@ -304,17 +305,21 @@ class CadasterImport:
                     self.xmlFilesCount += 1
                     with open(iPath) as file:
                         parser = Parser(file)
+                        # logMessage(iPath)
                         type = parser.getFileType()
-                        if type['tag'] in summary.keys():
-                            summary[type['tag']]['count'] += 1
+                        geometryType = parser.extractGeometryInfo()['type']
+                        if type['tag'] in self.summary.keys():
+                            self.summary[type['tag']]['count'] += 1
+                            if parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
+                                self.summary[type['tag']]['geometryType'].append(geometryType)
                         else:
-                            summary[type['tag']] = {'name': type['name'], 'count': 1}
+                            self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
                 if os.path.isdir(iPath):
                     recursion(iPath)
         recursion(dirPath)
         
         typesString = ''
-        for i in summary.values():
+        for i in self.summary.values():
             typesString += '<li>{} - <span style="font-weight: 700">{}<\span></li>'.format(i['name'], i['count'])
         self.dockwidget.info.setHtml('''
             <p>Обнаружено XML файлов:<span style="font-weight: 700"> {}</span>, из них:</p>
@@ -323,5 +328,4 @@ class CadasterImport:
             </ul>
 
         '''.format(self.xmlFilesCount, typesString))
-
-
+        self.dockwidget.importButton.setEnabled(True)
