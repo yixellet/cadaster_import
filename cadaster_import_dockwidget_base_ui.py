@@ -59,6 +59,7 @@ class Ui_CadasterImportDockWidgetBase(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.progressBarLabel.sizePolicy().hasHeightForWidth())
         self.progressBarLabel.setSizePolicy(sizePolicy)
+        self.progressBarLabel.setText("")
         self.progressBarLabel.setObjectName("progressBarLabel")
         self.gridLayout.addWidget(self.progressBarLabel, 2, 0, 1, 1)
         self.progressBar = QtWidgets.QProgressBar(self.dockWidgetContents)
@@ -82,5 +83,4 @@ class Ui_CadasterImportDockWidgetBase(object):
         self.importButton.setShortcut(_translate("CadasterImportDockWidgetBase", "Return"))
         self.analizeButton.setText(_translate("CadasterImportDockWidgetBase", "Анализ файлов"))
         self.selectDirectoryLabel.setText(_translate("CadasterImportDockWidgetBase", "Выберите директорию"))
-        self.progressBarLabel.setText(_translate("CadasterImportDockWidgetBase", "TextLabel"))
 from qgis import gui

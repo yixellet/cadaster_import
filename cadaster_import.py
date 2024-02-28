@@ -21,8 +21,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -78,6 +78,7 @@ class CadasterImport:
         self.pluginIsActive = False
         self.dockwidget = None
         self.summary = {}
+        self.plugin_path = os.path.dirname(__file__)
 
 
     # noinspection PyMethodMayBeStatic
@@ -184,6 +185,7 @@ class CadasterImport:
             self.dockwidget = CadasterImportDockWidget()
             self.dockwidget.analizeButton.clicked.connect(self.analize)
             self.dockwidget.importButton.clicked.connect(self.on_importButton_clicked)
+            self.dockwidget.buttonBox.helpRequested.connect(self.showHelp)
 
     #--------------------------------------------------------------------------
 
@@ -294,18 +296,19 @@ class CadasterImport:
                 self.dockwidget.progressBar.setValue(0)
 
     def analize(self):
+        self.dockwidget.progressBarLabel.setText("Анализ файлов")
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
         self.xmlFilesCount = 0
-        # self.summary = {}
+        self.dockwidget.progressBar.setRange(0, len(os.listdir(dirPath)))
         def recursion(dirPath):
             content = os.listdir(dirPath)
             for i in content:
                 iPath = os.path.join(dirPath, i)
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
                     self.xmlFilesCount += 1
+                    self.dockwidget.progressBar.setValue(self.xmlFilesCount)
                     with open(iPath) as file:
                         parser = Parser(file)
-                        # logMessage(iPath)
                         type = parser.getFileType()
                         geometryType = parser.extractGeometryInfo()['type']
                         if type['tag'] in self.summary.keys():
@@ -328,4 +331,11 @@ class CadasterImport:
             </ul>
 
         '''.format(self.xmlFilesCount, typesString))
+        self.dockwidget.progressBarLabel.setText("")
+        self.dockwidget.progressBar.reset()
+        self.dockwidget.progressBar.setValue(0)
         self.dockwidget.importButton.setEnabled(True)
+
+    def showHelp(self):
+        help_file = 'file:///%s/help/index.html' % self.plugin_path
+        QDesktopServices.openUrl(QUrl(help_file))
