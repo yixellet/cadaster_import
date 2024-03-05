@@ -259,6 +259,7 @@ class CadasterImport:
                 LayerCreator.loadData(self.constrPolyLayer, result, 'construction')
 
     def on_importButton_clicked(self):
+        self.dockwidget.progressBarLabel.setText("Импорт файлов")
         if 'extract_about_property_land' in self.summary.keys():
             self.landsLayer = LayerCreator.createLandsLayer()
         if 'extract_about_property_construction' in self.summary.keys():
@@ -269,44 +270,46 @@ class CadasterImport:
         
         if self.dockwidget.selectDirectoryWidget.filePath():
             file_path = self.dockwidget.selectDirectoryWidget.filePath()
-            storage_mode = str(self.dockwidget.selectDirectoryWidget.storageMode())
-            if storage_mode == '0':
-                with open(file_path, encoding="utf8") as f:
-                    self.filesOperation(f)
-
-            if storage_mode == '1':
-                content = os.listdir(file_path)
-                self.dockwidget.progressBar.setRange(0, len(content))
-                current_value = 0
+            self.dockwidget.progressBar.setRange(0, self.xmlFilesCount)
+            self.filesImported = 0
+            self.dockwidget.progressBar.setValue(self.filesImported)
+            def recursion(dirPath):
+                content = os.listdir(dirPath)
                 for item in content:
-                    current_value += 1
-                    path = os.path.join(file_path, item)
+                    self.filesImported += 1
+                    path = os.path.join(dirPath, item)
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
                         with open(path, encoding="utf8") as f:
                             self.filesOperation(f)
+                        self.dockwidget.progressBar.setValue(self.filesImported)
 
                     if os.path.isdir(path):
-                        files = os.listdir(path)
-                        for file in files:
-                            if os.path.splitext(file)[1] == '.xml':
-                                with open(os.path.join(path, file), encoding="utf8") as f:
-                                    self.filesOperation(f)
-                    self.dockwidget.progressBar.setValue(current_value)
+                        recursion(path)
                 self.dockwidget.progressBar.reset()
                 self.dockwidget.progressBar.setValue(0)
+            recursion(file_path)
+        self.dockwidget.progressBarLabel.setText("")
+        self.dockwidget.progressBar.reset()
+        self.dockwidget.progressBar.setValue(0)
+        self.dockwidget.importButton.setEnabled(False)
 
     def analize(self):
+        self.summary = {}
         self.dockwidget.progressBarLabel.setText("Анализ файлов")
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
+        self.commonElementsCount = len(os.listdir(dirPath))
         self.xmlFilesCount = 0
-        self.dockwidget.progressBar.setRange(0, len(os.listdir(dirPath)))
+        self.filesChecked = 0
+        self.dockwidget.progressBar.setRange(0, self.commonElementsCount)
+        self.dockwidget.progressBar.setValue(self.filesChecked)
         def recursion(dirPath):
             content = os.listdir(dirPath)
             for i in content:
                 iPath = os.path.join(dirPath, i)
+                self.filesChecked += 1
+                self.dockwidget.progressBar.setValue(self.filesChecked)
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
                     self.xmlFilesCount += 1
-                    self.dockwidget.progressBar.setValue(self.xmlFilesCount)
                     with open(iPath) as file:
                         parser = Parser(file)
                         type = parser.getFileType()
@@ -318,6 +321,9 @@ class CadasterImport:
                         else:
                             self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
                 if os.path.isdir(iPath):
+                    count = len(os.listdir(iPath))
+                    self.commonElementsCount += count
+                    self.dockwidget.progressBar.setRange(0, self.commonElementsCount)
                     recursion(iPath)
         recursion(dirPath)
         

@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import re
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
@@ -13,7 +14,7 @@ class Parser():
         'extract_about_property_construction': {
             'name': 'Кадастровая выписка об объекте капитального строительства'
         },
-        'extract_about_boundaries': {
+        'extract_about_boundary': {
             'name': 'Кадастровая выписка об административной границе'
         },
         'extract_about_property_build': {
@@ -63,4 +64,24 @@ class Parser():
         if self.root.tag == 'extract_about_property_land':
             if self.root.find('land_record').find('contours_location'):
                 return getGeometryInfo(self.root.find('land_record').find('contours_location').find('contours'))
+        if self.root.tag == 'extract_about_boundary':
+            if self.root.find('boundary_record').find('subject_boundary'):
+                if self.root.find('boundary_record').find('subject_boundary').find('contours_location'):
+                    return getGeometryInfo(self.root.find('boundary_record').find('subject_boundary').find('contours_location').find('contours'))
+            if self.root.find('boundary_record').find('municipal_boundary'):
+                if self.root.find('boundary_record').find('municipal_boundary').find('contours_location'):
+                    return getGeometryInfo(self.root.find('boundary_record').find('municipal_boundary').find('contours_location').find('contours'))
+            if self.root.find('boundary_record').find('inhabited_locality_boundary'):
+                if self.root.find('boundary_record').find('inhabited_locality_boundary').find('contours_location'):
+                    return getGeometryInfo(self.root.find('boundary_record').find('inhabited_locality_boundary').find('contours_location').find('contours'))
+        if self.root.tag == 'extract_about_zone':
+            if self.root.find('zone_territory_coastline_surveying').find('zones_and_territories'):
+                if self.root.find('zone_territory_coastline_surveying').find('zones_and_territories').find('contours_location'):
+                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('zones_and_territories').find('contours_location').find('contours'))
+            if self.root.find('zone_territory_coastline_surveying').find('coastline'):
+                if self.root.find('zone_territory_coastline_surveying').find('coastline').find('contours_location'):
+                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('coastline').find('contours_location').find('contours'))
+            if self.root.find('zone_territory_coastline_surveying').find('surveying_project'):
+                if self.root.find('zone_territory_coastline_surveying').find('surveying_project').find('contours_location'):
+                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('surveying_project').find('contours_location').find('contours'))
         return None
