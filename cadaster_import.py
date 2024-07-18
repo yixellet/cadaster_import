@@ -33,6 +33,7 @@ from .parser_1 import Parser
 from .loaders.layer_creator import LayerCreator
 import os.path
 import os
+from zipfile import ZipFile
 
 from .cadaster_import_utils import logMessage
 
@@ -310,16 +311,39 @@ class CadasterImport:
                 self.dockwidget.progressBar.setValue(self.filesChecked)
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
                     self.xmlFilesCount += 1
+                    # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
                     with open(iPath) as file:
                         parser = Parser(file)
                         type = parser.getFileType()
-                        geometryType = parser.extractGeometryInfo()['type']
+                        if type['tag'] != 'extract_cadastral_plan_territory':
+                            geometryType = parser.extractGeometryInfo()['type']
+                        else:
+                            geometryType = None
                         if type['tag'] in self.summary.keys():
                             self.summary[type['tag']]['count'] += 1
-                            if parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
+                            if type['tag'] != 'extract_cadastral_plan_territory' and parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
                                 self.summary[type['tag']]['geometryType'].append(geometryType)
                         else:
                             self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
+                if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.zip':
+                    with ZipFile(iPath, "r") as zip:
+                        for item in zip.infolist():
+                            if item.filename.split('.')[-1] == 'xml' and 'report' in item.filename.split('.')[0]:
+                                self.xmlFilesCount += 1
+                                # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
+                                with zip.open(item.filename, 'r') as xml_from_zip:
+                                    parser = Parser(xml_from_zip)
+                                    type = parser.getFileType()
+                                    if type['tag'] != 'extract_cadastral_plan_territory':
+                                        geometryType = parser.extractGeometryInfo()['type']
+                                    else:
+                                        geometryType = None
+                                    if type['tag'] in self.summary.keys():
+                                        self.summary[type['tag']]['count'] += 1
+                                        if type['tag'] != 'extract_cadastral_plan_territory' and parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
+                                            self.summary[type['tag']]['geometryType'].append(geometryType)
+                                    else:
+                                        self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
                 if os.path.isdir(iPath):
                     count = len(os.listdir(iPath))
                     self.commonElementsCount += count

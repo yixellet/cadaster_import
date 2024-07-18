@@ -4,7 +4,7 @@ from .record_info import recordInfo
 from .common_data import commonData
 from .land_params import landParams
 from .cad_link import cadLink
-from .contours import contours
+from .contours import contours, getMskZone
 
 def parseEapl(root):
     '''
@@ -12,6 +12,8 @@ def parseEapl(root):
     '''
     result = {}
     lr = root.find('land_record')
+
+    result['content'] = 'land'
 
     # Даты государственной регистрации
     result.update(recordInfo(lr.find('record_info')))
@@ -63,6 +65,7 @@ def parseEapl(root):
     # Описание местоположения границ ЗУ
     if lr.find('contours_location') != None:
         result['geom'] = contours(lr.find('contours_location').find('contours'))
+        result['msk_zone'] = getMskZone()
     else:
         result['geom'] = None
 

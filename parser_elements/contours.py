@@ -23,9 +23,9 @@ def defineGeometryTypeET(spatialElement):
     firstPoint = ordinatesArray[0]
     lastPoint = ordinatesArray[-1]
     if firstPoint[0] == lastPoint[0] and firstPoint[1] == lastPoint[1]:
-        return 'polygon'
+        return 'MultiPolygon'
     else:
-        return 'line'
+        return 'MultiLineString'
 
 def transform(coords, zone=1):
     msk_1 = CRS.from_proj4('+proj=tmerc +lat_0=0 +lon_0=46.05 +k=1 +x_0=1300000 +y_0=-4714743.504 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs')
@@ -53,16 +53,27 @@ def getGeometryInfo(element):
     if p.find('cad_number') != None:
         result['cad_num'] = p.find('cad_number').text
     entitySpatial = p.find('entity_spatial')
-    if entitySpatial.find('sk_id'):
-        result['sk_id'] = entitySpatial.find('sk_id').text
     e = entitySpatial.find('spatials_elements').find('spatial_element')
     result['type'] = defineGeometryTypeET(e)
     ord = e.find('ordinates').find('ordinate')
     result['coord'] = [float(ord.find('x').text), float(ord.find('y').text)]
+    y_ord = ord.find('y')
+    result['msk_zone'] = int(y_ord[0])
 
     return result
 
-def contours(element, transformate=True):
+def getMskZone(element) -> str:
+    '''
+    Анализирует геометрию. Определяет СК, указанную в XML.
+    Функция принимает только элемент entity_spatial
+    '''
+    e = element.find('spatials_elements').find('spatial_element')
+    ord = e.find('ordinates').find('ordinate')
+    y_ord = ord.find('y')
+
+    return y_ord[0]
+
+def contours(element, transformate=False):
     '''
     Извлекает геометрию
     '''

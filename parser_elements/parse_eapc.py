@@ -3,7 +3,7 @@ from .address import address
 from .record_info import recordInfo
 from .common_data import commonData
 from .cad_link import cadLink
-from .contours import contours
+from .contours import contours, getMskZone, defineGeometryType
 from .construction_params import constructionParams
 
 from ..cadaster_import_utils import logMessage
@@ -14,6 +14,8 @@ def parseEapc(root):
     '''
     result = {}
     cr = root.find('construction_record')
+
+    result['content'] = 'construction'
 
     # Даты государственной регистрации
     result.update(recordInfo(cr.find('record_info')))
@@ -66,7 +68,12 @@ def parseEapc(root):
 
     # Описание местоположения границ ЗУ
     if cr.find('contours') != None:
-        result['geom'] = contours(cr.find('contours'))
+        xml_contours = cr.find('contours')
+        result['geom'] = contours(xml_contours)
+        xml_entity_spatial = xml_contours.find('contour').find('entity_spatial')
+        result['msk_zone'] = getMskZone(xml_entity_spatial)
+        xml_spatial_element = xml_entity_spatial.find('spatials_elements').find('spatial_element')
+        result['geometryType'] = defineGeometryType(xml_spatial_element)
     else:
         result['geom'] = None
 

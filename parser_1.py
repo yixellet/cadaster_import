@@ -45,6 +45,7 @@ class Parser():
         self.root = self.tree.getroot()
 
     def getFileType(self):
+        print(self.root.tag)
         return {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
     
     def parse(self):

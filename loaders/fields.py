@@ -61,6 +61,11 @@ fields = {
         'name': 'cad_number',
         'desc': 'Кадастровый номер'
     },
+    'cadastral_number': {
+        'type': QVariant.String,
+        'name': 'cad_number',
+        'desc': 'Кадастровый номер'
+    },
     'type': {
         'type': QVariant.String,
         'name': 'type',
