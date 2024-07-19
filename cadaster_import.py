@@ -30,7 +30,6 @@ from .resources import *
 # Import the code for the DockWidget
 from .cadaster_import_dockwidget import CadasterImportDockWidget
 from .parser_1 import Parser
-from .loaders.layer_creator import LayerCreator
 import os.path
 import os
 from zipfile import ZipFile
@@ -147,7 +146,6 @@ class CadasterImport:
             added to self.actions list.
         :rtype: QAction
         """
-
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
@@ -245,11 +243,9 @@ class CadasterImport:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
-    def filesOperation(self, file):
-        p = Parser(file)
-        p.parse()
-
     def on_importButton_clicked(self):
+        """Действия при нажатии на кнопку ИМПОРТ
+        """
         self.dockwidget.progressBarLabel.setText("Импорт файлов")
         
         if self.dockwidget.selectDirectoryWidget.filePath():
@@ -264,7 +260,8 @@ class CadasterImport:
                     path = os.path.join(dirPath, item)
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
                         with open(path, encoding="utf8") as f:
-                            self.filesOperation(f)
+                            p = Parser(f)
+                            p.parse()
                         self.dockwidget.progressBar.setValue(self.filesImported)
 
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.zip':
@@ -274,7 +271,8 @@ class CadasterImport:
                                     self.filesImported += 1
                                     # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
                                     with zip.open(f.filename, 'r') as xml_from_zip:
-                                        self.filesOperation(xml_from_zip)
+                                        p = Parser(xml_from_zip)
+                                        p.parse()
                         self.dockwidget.progressBar.setValue(self.filesImported)
                     if os.path.isdir(path):
                         recursion(path)
@@ -287,6 +285,8 @@ class CadasterImport:
         self.dockwidget.importButton.setEnabled(False)
 
     def analize(self):
+        """Анализ файлов и определение их содержимого
+        """
         self.summary = {}
         self.dockwidget.progressBarLabel.setText("Анализ файлов")
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
@@ -307,16 +307,10 @@ class CadasterImport:
                     with open(iPath) as file:
                         parser = Parser(file)
                         type = parser.getFileType()
-                        if type['tag'] != 'extract_cadastral_plan_territory':
-                            geometryType = parser.extractGeometryInfo()['type']
-                        else:
-                            geometryType = None
                         if type['tag'] in self.summary.keys():
                             self.summary[type['tag']]['count'] += 1
-                            if type['tag'] != 'extract_cadastral_plan_territory' and parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
-                                self.summary[type['tag']]['geometryType'].append(geometryType)
                         else:
-                            self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
+                            self.summary[type['tag']] = {'name': type['name'], 'count': 1}
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.zip':
                     with ZipFile(iPath, "r") as zip:
                         for item in zip.infolist():
@@ -326,16 +320,10 @@ class CadasterImport:
                                 with zip.open(item.filename, 'r') as xml_from_zip:
                                     parser = Parser(xml_from_zip)
                                     type = parser.getFileType()
-                                    if type['tag'] != 'extract_cadastral_plan_territory':
-                                        geometryType = parser.extractGeometryInfo()['type']
-                                    else:
-                                        geometryType = None
                                     if type['tag'] in self.summary.keys():
                                         self.summary[type['tag']]['count'] += 1
-                                        if type['tag'] != 'extract_cadastral_plan_territory' and parser.extractGeometryInfo()['type'] not in self.summary[type['tag']]['geometryType']:
-                                            self.summary[type['tag']]['geometryType'].append(geometryType)
                                     else:
-                                        self.summary[type['tag']] = {'name': type['name'], 'count': 1, 'geometryType': [geometryType]}
+                                        self.summary[type['tag']] = {'name': type['name'], 'count': 1}
                 if os.path.isdir(iPath):
                     count = len(os.listdir(iPath))
                     self.commonElementsCount += count

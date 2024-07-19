@@ -24,6 +24,7 @@ class LayerCreator():
                   'land_use_mer'],
         'quarters': ['date_formation', 'cadastral_number', 'area'],
         'municipal_boundaries': ['registration_number', 'registration_number', 'type_boundary'],
+        'zones': ['registration_number', 'registration_number', 'type_boundary', 'type_zone'],
     }
     def __init__(self):
         pass

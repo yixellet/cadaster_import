@@ -6,6 +6,7 @@ from .parser_elements.parse_eapc import parseEapc
 from .parser_elements.quarter import quarter
 from .parser_elements.land_records import land_records
 from .parser_elements.mun_boundaries import mun_boundaries
+from .parser_elements.zones import zones
 from .parser_elements.contours import getGeometryInfo
 from .loaders.layer_creator import LayerCreator
 from .cadaster_import_utils import logMessage
@@ -73,32 +74,7 @@ class Parser():
             mun_bounds = mun_boundaries(self.root)
             for mun_bound in mun_bounds:
                 LayerCreator.loadData(mun_bound)
+            zone = zones(self.root)
+            for z in zone:
+                LayerCreator.loadData(z)
     
-    def extractGeometryInfo(self):
-        if self.root.tag == 'extract_about_property_construction':
-            if self.root.find('construction_record').find('contours'):
-                return getGeometryInfo(self.root.find('construction_record').find('contours'))
-        if self.root.tag == 'extract_about_property_land':
-            if self.root.find('land_record').find('contours_location'):
-                return getGeometryInfo(self.root.find('land_record').find('contours_location').find('contours'))
-        if self.root.tag == 'extract_about_boundary':
-            if self.root.find('boundary_record').find('subject_boundary'):
-                if self.root.find('boundary_record').find('subject_boundary').find('contours_location'):
-                    return getGeometryInfo(self.root.find('boundary_record').find('subject_boundary').find('contours_location').find('contours'))
-            if self.root.find('boundary_record').find('municipal_boundary'):
-                if self.root.find('boundary_record').find('municipal_boundary').find('contours_location'):
-                    return getGeometryInfo(self.root.find('boundary_record').find('municipal_boundary').find('contours_location').find('contours'))
-            if self.root.find('boundary_record').find('inhabited_locality_boundary'):
-                if self.root.find('boundary_record').find('inhabited_locality_boundary').find('contours_location'):
-                    return getGeometryInfo(self.root.find('boundary_record').find('inhabited_locality_boundary').find('contours_location').find('contours'))
-        if self.root.tag == 'extract_about_zone':
-            if self.root.find('zone_territory_coastline_surveying').find('zones_and_territories'):
-                if self.root.find('zone_territory_coastline_surveying').find('zones_and_territories').find('contours_location'):
-                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('zones_and_territories').find('contours_location').find('contours'))
-            if self.root.find('zone_territory_coastline_surveying').find('coastline'):
-                if self.root.find('zone_territory_coastline_surveying').find('coastline').find('contours_location'):
-                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('coastline').find('contours_location').find('contours'))
-            if self.root.find('zone_territory_coastline_surveying').find('surveying_project'):
-                if self.root.find('zone_territory_coastline_surveying').find('surveying_project').find('contours_location'):
-                    return getGeometryInfo(self.root.find('zone_territory_coastline_surveying').find('surveying_project').find('contours_location').find('contours'))
-        return None
