@@ -79,32 +79,59 @@ def contours(element, transformate=False):
     '''
     contoursArray = []
     geomType = 1
+    zone = '1'
     for p in element.findall('contour'):
         spatialElementsArray = []
-        es = p.find('entity_spatial')
-        for e in es.find('spatials_elements').findall('spatial_element'):
-            ordinatesArray = []
-            ordinatesArrayMSK = []
-            for o in e.find('ordinates').findall('ordinate'):
-                if transformate:
-                    transformedOrdinate = transform([o.find('x').text, o.find('y').text], int(o.find('y').text[0]))
-                else:
-                    transformedOrdinate = (o.find('x').text, o.find('y').text)
-                ordinatesArray.append(' '.join([str(transformedOrdinate[1]), str(transformedOrdinate[0])]))
-                ordinatesArrayMSK.append([float(o.find('x').text), float(o.find('y').text)])
-            elementWKT = '(' + ','.join(ordinatesArray) + ')'
-            spatialElementsArray.append(elementWKT)
-            geomType = defineGeometryType(ordinatesArrayMSK)
-        if geomType == 1:
-            contourWKT = '(' + ','.join(spatialElementsArray) + ')'
-            contoursArray.append(contourWKT)
+        if p.find('entity_spatial').find('spatials_elements') != None:
+            es = p.find('entity_spatial')
+            for e in es.find('spatials_elements').findall('spatial_element'):
+                ordinatesArray = []
+                ordinatesArrayMSK = []
+                for o in e.find('ordinates').findall('ordinate'):
+                    if transformate:
+                        transformedOrdinate = transform([o.find('x').text, o.find('y').text], int(o.find('y').text[0]))
+                    else:
+                        transformedOrdinate = (o.find('x').text, o.find('y').text)
+                    zone = o.find('y').text[0]
+                    ordinatesArray.append(' '.join([str(transformedOrdinate[1]), str(transformedOrdinate[0])]))
+                    ordinatesArrayMSK.append([float(o.find('x').text), float(o.find('y').text)])
+                elementWKT = '(' + ','.join(ordinatesArray) + ')'
+                spatialElementsArray.append(elementWKT)
+                geomType = defineGeometryType(ordinatesArrayMSK)
+            if geomType == 1:
+                contourWKT = '(' + ','.join(spatialElementsArray) + ')'
+                contoursArray.append(contourWKT)
+            else:
+                contourWKT = ','.join(spatialElementsArray)
+                contoursArray.append(contourWKT)
         else:
-            contourWKT = ','.join(spatialElementsArray)
-            contoursArray.append(contourWKT)
+            return {'geom': None, 'msk_zone': None}
 
     if geomType == 1:
         geomWKT = 'MULTIPOLYGON(' + ','.join(contoursArray) + ')'
     else:
         geomWKT = 'MULTILINESTRING(' + ','.join(contoursArray) + ')'
         
-    return geomWKT
+    return {'geom': geomWKT, 'msk_zone': zone}
+
+def quarter_contours(element):
+    '''
+    Извлекает геометрию из элемента entity_spatial
+    Принимает на вход элемент entity_spatial
+    '''
+    contoursArray = []
+    spatialElementsArray = []
+    zone = '1'
+    for e in element.find('spatials_elements').findall('spatial_element'):
+        ordinatesArray = []
+        for o in e.find('ordinates').findall('ordinate'):
+            transformedOrdinate = (o.find('x').text, o.find('y').text)
+            zone = o.find('y').text[0]
+            ordinatesArray.append(' '.join([str(transformedOrdinate[1]), str(transformedOrdinate[0])]))
+        elementWKT = '(' + ','.join(ordinatesArray) + ')'
+        spatialElementsArray.append(elementWKT)
+    contourWKT = '(' + ','.join(spatialElementsArray) + ')'
+    contoursArray.append(contourWKT)
+    geomWKT = 'MULTIPOLYGON(' + ','.join(contoursArray) + ')'
+        
+    return {'geom': geomWKT, 'msk_zone': zone}

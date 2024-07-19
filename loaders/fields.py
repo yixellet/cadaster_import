@@ -16,6 +16,11 @@ fields = {
         'name': 'registration_number',
         'desc': 'Регистрационный номер'
     },
+    'registration_date': {
+        'type': QVariant.Date,
+        'name': 'registration_date',
+        'desc': 'Дата регистрации'
+    },
     'full_name_position': {
         'type': QVariant.String,
         'name': 'full_name_position',
@@ -63,16 +68,21 @@ fields = {
     },
     'cadastral_number': {
         'type': QVariant.String,
-        'name': 'cad_number',
-        'desc': 'Кадастровый номер'
+        'name': 'cadastral_number',
+        'desc': 'Кадастровый номер квартала'
     },
     'type': {
         'type': QVariant.String,
         'name': 'type',
         'desc': 'Вид объекта недвижимости'
     },
+    'type_boundary': {
+        'type': QVariant.String,
+        'name': 'type_boundary',
+        'desc': 'Вид границы'
+    },
     'area': {
-        'type': QVariant.Int,
+        'type': QVariant.Double,
         'name': 'area',
         'desc': 'Площадь'
     },

@@ -247,27 +247,10 @@ class CadasterImport:
 
     def filesOperation(self, file):
         p = Parser(file)
-        if p.getFileType()['tag'] == 'extract_about_property_land':
-            result = p.parse()
-            # logMessage(str(result['cad_number']))
-            LayerCreator.loadData(self.landsLayer, result, 'land')
-        elif p.getFileType()['tag'] == 'extract_about_property_construction':
-            result = p.parse()
-            # logMessage(str(result))
-            if result['geom'][5:8] == 'LIN':
-                LayerCreator.loadData(self.constrLineLayer, result, 'construction')
-            if result['geom'][5:8] == 'POL':
-                LayerCreator.loadData(self.constrPolyLayer, result, 'construction')
+        p.parse()
 
     def on_importButton_clicked(self):
         self.dockwidget.progressBarLabel.setText("Импорт файлов")
-        if 'extract_about_property_land' in self.summary.keys():
-            self.landsLayer = LayerCreator.createLandsLayer()
-        if 'extract_about_property_construction' in self.summary.keys():
-            if 'polygon' in self.summary['extract_about_property_construction']['geometryType']:
-                self.constrPolyLayer = LayerCreator.createConstructionsPolygonLayer()
-            if 'line' in self.summary['extract_about_property_construction']['geometryType']:
-                self.constrLineLayer = LayerCreator.createConstructionsLineLayer()
         
         if self.dockwidget.selectDirectoryWidget.filePath():
             file_path = self.dockwidget.selectDirectoryWidget.filePath()
@@ -284,6 +267,15 @@ class CadasterImport:
                             self.filesOperation(f)
                         self.dockwidget.progressBar.setValue(self.filesImported)
 
+                    if os.path.isfile(path) and os.path.splitext(item)[1] == '.zip':
+                        with ZipFile(path, "r") as zip:
+                            for f in zip.infolist():
+                                if f.filename.split('.')[-1] == 'xml' and 'report' in f.filename.split('.')[0]:
+                                    self.filesImported += 1
+                                    # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
+                                    with zip.open(f.filename, 'r') as xml_from_zip:
+                                        self.filesOperation(xml_from_zip)
+                        self.dockwidget.progressBar.setValue(self.filesImported)
                     if os.path.isdir(path):
                         recursion(path)
                 self.dockwidget.progressBar.reset()

@@ -1,77 +1,35 @@
-from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsProject
+from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsProject, QgsFeatureRequest
 
 from .fields import fields
 from ..cadaster_import_utils import logMessage
 
 class LayerCreator():
     FIELDS = {
-        'construction': ['registration_number', 'date_formation', 'address', 
+        'constructions': ['registration_number', 'date_formation', 'address', 
                   'registration_date', 'cancel_date', 
                   'cad_number', 'land_cad_numbers', 'extension', 
                   'area', 'built_up_area', 'depth', 'occurence_depth', 
                   'volume', 'height', 'floors', 'underground_floors', 
                   'purpose', 'name', 'year_built', 'year_commisioning'],
-        'land': ['registration_number', 'date_formation', 'cad_works', 'address', 
-                  'registration_date', 'cancel_date', 'address_type', 'rel_position',
+        #'lands': ['registration_number', 'date_formation', 'cad_works', 'address', 
+        #          'registration_date', 'cancel_date', 'address_type', 'rel_position',
+        #          'cad_number', 'type', 'area_inaccuracy', 
+        #          'area', 'area_type', 'land_use_by_document', 'land_use', 
+        #          'land_use_mer', 'gr_reg_numb_border', 'gr_land_use', 'gr_permitted_use_text', 
+        #          'ascendant_cad_numbers', 'descendant_cad_numbers', 'included_objects', 'facility_cad_number', 'common_land'],
+        'lands': ['registration_number', 'date_formation', 'address', 
+                  'address_type', 
                   'cad_number', 'type', 'area_inaccuracy', 
                   'area', 'area_type', 'land_use_by_document', 'land_use', 
-                  'land_use_mer', 'gr_reg_numb_border', 'gr_land_use', 'gr_permitted_use_text', 
-                  'ascendant_cad_numbers', 'descendant_cad_numbers', 'included_objects', 'facility_cad_number', 'common_land'],
-        'quarter': ['date_formation', 'cadastral_number', 'area']
+                  'land_use_mer'],
+        'quarters': ['date_formation', 'cadastral_number', 'area'],
+        'municipal_boundaries': ['registration_number', 'registration_number', 'type_boundary'],
     }
     def __init__(self):
         pass
     
     @classmethod
-    def createLandsLayer(self):
-        vl = QgsVectorLayer('MultiPolygon', 'temp_lands__', 'memory')
-        pr = vl.dataProvider()
-
-        for field in fields.values():
-            if field['name'] in self.FIELDS['land']:
-                pr.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
-        vl.updateFields()
-        QgsProject.instance().addMapLayer(vl)
-        return vl
-    
-    @classmethod
-    def createConstructionsPolygonLayer(self):
-        vl = QgsVectorLayer('MultiPolygon', 'temp_constructions__polygon__', 'memory')
-        pr = vl.dataProvider()
-
-        for field in fields.values():
-            if field['name'] in self.FIELDS['construction']:
-                pr.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
-        vl.updateFields()
-        QgsProject.instance().addMapLayer(vl)
-        return vl
-    
-    @classmethod
-    def createConstructionsLineLayer(self):
-        vl = QgsVectorLayer('LineString', 'temp_constructions__line__', 'memory')
-        pr = vl.dataProvider()
-
-        for field in fields.values():
-            if field['name'] in self.FIELDS['construction']:
-                pr.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
-        vl.updateFields()
-        QgsProject.instance().addMapLayer(vl)
-        return vl
-    
-    @classmethod
-    def createQuartersLayer(self):
-        vl = QgsVectorLayer('MultiPolygon', 'temp_quarters', 'memory')
-        pr = vl.dataProvider()
-
-        for field in fields.values():
-            if field['name'] in self.FIELDS['quarter']:
-                pr.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
-        vl.updateFields()
-        QgsProject.instance().addMapLayer(vl)
-        return vl
-    
-    @classmethod
-    def createLayer(self, geometryType: str, content: str, mskZone: str):
+    def createLayer(self, geometryType: str, content: str, mskZone: str) -> QgsVectorLayer:
         """Создаёт новый слой в QGIS и возвращает его.
 
         Аргументы:
@@ -90,14 +48,42 @@ class LayerCreator():
         return vectorLayer
 
     @classmethod
-    def loadData(self, layer, data):
-        feat = QgsFeature(layer.fields())
-        if data['geom'] != None:
-            feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
-        for field in self.FIELDS[data['content']]:
-            feat.setAttribute(field, str(data[field]) if isinstance(data[field], (dict, list)) else data[field])
+    def loadData(self, data: dict) -> None:
+        """
+        Создает новый (или берет существующий) слой и загружает в него объекты
+
+        аргументы:
+        data - словарь с распарсенным объектом
+        """
         
+        layers = { layer.name(): layer for layer in QgsProject.instance().mapLayers().values() }
+        generatedLayerName = 'temp_' + data['content'] + '_' + data['geometryType'] + '__' + data['msk_zone']
+
+        if generatedLayerName in layers.keys():
+            layer = layers[generatedLayerName]
+        else:
+            layer = self.createLayer(data['geometryType'], data['content'], data['msk_zone'])
         
-        
-        layer.dataProvider().addFeature(feat)
-        layer.updateExtents()
+        s = None
+        if data['content'] in ('municipal_boundaries', 'zones'):
+            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"registration_number"=\'{}\''.format(data['registration_number'])))
+        elif data['content'] in ('lands', 'constructions'):
+            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cad_number"=\'{}\''.format(data['cad_number'])))
+        elif data['content'] in ('quarters'):
+            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cadastral_number"=\'{}\''.format(data['cadastral_number'])))
+            # logMessage(str(s.isempty()))
+        count = 0
+        for f in s:
+            count += 1
+
+        if count == 0:
+            feat = QgsFeature(layer.fields())
+            if data['geom'] != None:
+                feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
+            
+            for field in self.FIELDS[data['content']]:
+                # logMessage(str(data))
+                feat.setAttribute(field, str(data[field]) if isinstance(data[field], (dict, list)) else data[field])
+            
+            layer.dataProvider().addFeature(feat)
+            layer.updateExtents()

@@ -61,7 +61,10 @@ def address(element):
             afobj['postal_code'] = ls.find('postal_code').text
         else:
             afobj['postal_code'] = None
-        afobj['region'] = dict(ls.find('region'))
+        if ls.find('region') != None:
+            afobj['region'] = ls.find('region').text
+        else:
+            afobj['region'] = None
         if ls.find('district') != None:
             afobj['district'] = getAddressPart(ls, 'district')
         else:

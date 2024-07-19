@@ -3,7 +3,12 @@ import re
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
+from .parser_elements.quarter import quarter
+from .parser_elements.land_records import land_records
+from .parser_elements.mun_boundaries import mun_boundaries
 from .parser_elements.contours import getGeometryInfo
+from .loaders.layer_creator import LayerCreator
+from .cadaster_import_utils import logMessage
 
 class Parser():
     
@@ -53,10 +58,21 @@ class Parser():
         result.update(detailsStatement(self.root))
         if self.root.tag == 'extract_about_property_land':
             result.update(parseEapl(self.root))
+            LayerCreator.loadData(result)
         if self.root.tag == 'extract_about_property_construction':
             result.update(parseEapc(self.root))
-
-        return result
+            LayerCreator.loadData(result)
+        if self.root.tag == 'extract_cadastral_plan_territory':
+            #logMessage(self.root.tag)
+            result.update(quarter(self.root))
+            LayerCreator.loadData(result)
+            lands = land_records(self.root)
+            for land_record in lands:
+                land_record.update(detailsStatement(self.root))
+                LayerCreator.loadData(land_record)
+            mun_bounds = mun_boundaries(self.root)
+            for mun_bound in mun_bounds:
+                LayerCreator.loadData(mun_bound)
     
     def extractGeometryInfo(self):
         if self.root.tag == 'extract_about_property_construction':

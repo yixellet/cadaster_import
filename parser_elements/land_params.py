@@ -12,7 +12,7 @@ def landParams(el):
 
     # Площадь
     a = element.find('area')
-    land['area'] = int(a.find('value').text)
+    land['area'] = float(a.find('value').text)
     
     if a.find('inaccuracy') != None:
         land['area_inaccuracy'] = float(a.find('inaccuracy').text)
