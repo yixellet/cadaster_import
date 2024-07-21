@@ -25,6 +25,8 @@ def zones(root):
             record['content'] = 'zones'
             record['geometryType'] = 'MultiPolygon'
             result.append(record)
+    else:
+        result = None
 
 
     return result

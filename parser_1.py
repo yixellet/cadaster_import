@@ -7,6 +7,7 @@ from .parser_elements.quarter import quarter
 from .parser_elements.land_records import land_records
 from .parser_elements.mun_boundaries import mun_boundaries
 from .parser_elements.zones import zones
+from .parser_elements.coastlines import coastlines
 from .parser_elements.contours import getGeometryInfo
 from .loaders.layer_creator import LayerCreator
 from .cadaster_import_utils import logMessage
@@ -68,13 +69,20 @@ class Parser():
             result.update(quarter(self.root))
             LayerCreator.loadData(result)
             lands = land_records(self.root)
-            for land_record in lands:
-                land_record.update(detailsStatement(self.root))
-                LayerCreator.loadData(land_record)
+            if lands:
+                for land_record in lands:
+                    land_record.update(detailsStatement(self.root))
+                    LayerCreator.loadData(land_record)
             mun_bounds = mun_boundaries(self.root)
-            for mun_bound in mun_bounds:
-                LayerCreator.loadData(mun_bound)
+            if mun_bounds:
+                for mun_bound in mun_bounds:
+                    LayerCreator.loadData(mun_bound)
             zone = zones(self.root)
-            for z in zone:
-                LayerCreator.loadData(z)
+            if zone:
+                for z in zone:
+                    LayerCreator.loadData(z)
+            coastline = coastlines(self.root)
+            if coastline:
+                for c in coastline:
+                    LayerCreator.loadData(c)
     

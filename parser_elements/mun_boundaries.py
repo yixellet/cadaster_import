@@ -4,11 +4,11 @@ def mun_boundaries(root):
     """
     Извлекает инфо о границах муниципальных образований из КПТ
     """
-    result = []
     cadastral_blocks = root.find('cadastral_blocks')
     cadastral_block = cadastral_blocks.find('cadastral_block')
 
     if cadastral_block.find('municipal_boundaries') != None:
+        result = []
         for boundary in cadastral_block.find('municipal_boundaries').findall('municipal_boundary_record'):
             record = {}
             b_object = boundary.find('b_object_municipal_boundary').find('b_object')
@@ -20,6 +20,8 @@ def mun_boundaries(root):
             record['content'] = 'municipal_boundaries'
             record['geometryType'] = 'MultiPolygon'
             result.append(record)
+    else:
+        result = None
 
 
     return result

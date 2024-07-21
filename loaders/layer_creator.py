@@ -25,6 +25,7 @@ class LayerCreator():
         'quarters': ['date_formation', 'cadastral_number', 'area'],
         'municipal_boundaries': ['registration_number', 'registration_number', 'type_boundary'],
         'zones': ['registration_number', 'registration_number', 'type_boundary', 'type_zone'],
+        'coastlines': ['registration_number', 'registration_number', 'water']
     }
     def __init__(self):
         pass
@@ -66,7 +67,7 @@ class LayerCreator():
             layer = self.createLayer(data['geometryType'], data['content'], data['msk_zone'])
         
         s = None
-        if data['content'] in ('municipal_boundaries', 'zones'):
+        if data['content'] in ('municipal_boundaries', 'zones', 'coastlines'):
             s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"registration_number"=\'{}\''.format(data['registration_number'])))
         elif data['content'] in ('lands', 'constructions'):
             s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cad_number"=\'{}\''.format(data['cad_number'])))

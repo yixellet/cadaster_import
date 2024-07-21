@@ -88,6 +88,11 @@ fields = {
         'name': 'type_zone',
         'desc': 'Вид зоны'
     },
+    'water': {
+        'type': QMetaType.QString,
+        'name': 'water',
+        'desc': 'Водный объект'
+    },
     'area': {
         'type': QMetaType.Double,
         'name': 'area',

@@ -259,12 +259,14 @@ class CadasterImport:
                     self.filesImported += 1
                     path = os.path.join(dirPath, item)
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
+                        logMessage(item)
                         with open(path, encoding="utf8") as f:
                             p = Parser(f)
                             p.parse()
                         self.dockwidget.progressBar.setValue(self.filesImported)
 
                     if os.path.isfile(path) and os.path.splitext(item)[1] == '.zip':
+                        logMessage(item)
                         with ZipFile(path, "r") as zip:
                             for f in zip.infolist():
                                 if f.filename.split('.')[-1] == 'xml' and 'report' in f.filename.split('.')[0]:
@@ -288,6 +290,7 @@ class CadasterImport:
         """Анализ файлов и определение их содержимого
         """
         self.summary = {}
+        self.quarters = []
         self.dockwidget.progressBarLabel.setText("Анализ файлов")
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
         self.commonElementsCount = len(os.listdir(dirPath))
@@ -307,6 +310,8 @@ class CadasterImport:
                     with open(iPath) as file:
                         parser = Parser(file)
                         type = parser.getFileType()
+                        # TODO: детектор файлов-дубликатов
+                        self.quarters.append('')
                         if type['tag'] in self.summary.keys():
                             self.summary[type['tag']]['count'] += 1
                         else:
