@@ -33,6 +33,7 @@ from .parser_1 import Parser
 import os.path
 import os
 from zipfile import ZipFile
+from datetime import date
 
 from .cadaster_import_utils import logMessage
 
@@ -253,19 +254,22 @@ class CadasterImport:
             self.dockwidget.progressBar.setRange(0, self.xmlFilesCount)
             self.filesImported = 0
             self.dockwidget.progressBar.setValue(self.filesImported)
+            unique_files = []
+            for element in self.quarters.values():
+                unique_files.append(element['filename'])
             def recursion(dirPath):
                 content = os.listdir(dirPath)
                 for item in content:
                     self.filesImported += 1
                     path = os.path.join(dirPath, item)
-                    if os.path.isfile(path) and os.path.splitext(item)[1] == '.xml':
+                    if os.path.isfile(path) and item in unique_files and os.path.splitext(item)[1] == '.xml':
                         logMessage(item)
                         with open(path, encoding="utf8") as f:
                             p = Parser(f)
                             p.parse()
                         self.dockwidget.progressBar.setValue(self.filesImported)
 
-                    if os.path.isfile(path) and os.path.splitext(item)[1] == '.zip':
+                    if os.path.isfile(path) and item in unique_files and os.path.splitext(item)[1] == '.zip':
                         logMessage(item)
                         with ZipFile(path, "r") as zip:
                             for f in zip.infolist():
@@ -290,7 +294,7 @@ class CadasterImport:
         """Анализ файлов и определение их содержимого
         """
         self.summary = {}
-        self.quarters = []
+        self.quarters = {}
         self.dockwidget.progressBarLabel.setText("Анализ файлов")
         dirPath = self.dockwidget.selectDirectoryWidget.filePath()
         self.commonElementsCount = len(os.listdir(dirPath))
@@ -311,7 +315,14 @@ class CadasterImport:
                         parser = Parser(file)
                         type = parser.getFileType()
                         # TODO: детектор файлов-дубликатов
-                        self.quarters.append('')
+
+                        if type['cadastral_number'] not in self.quarters.keys():
+                            self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
+                        else:
+                            if date.fromisoformat(type['date_formation']) > date.fromisoformat(self.quarters[type['cadastral_number']]['date']):
+                                self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
+
+
                         if type['tag'] in self.summary.keys():
                             self.summary[type['tag']]['count'] += 1
                         else:
@@ -325,6 +336,12 @@ class CadasterImport:
                                 with zip.open(item.filename, 'r') as xml_from_zip:
                                     parser = Parser(xml_from_zip)
                                     type = parser.getFileType()
+
+                                    if type['cadastral_number'] not in self.quarters.keys():
+                                        self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
+                                    else:
+                                        if date.fromisoformat(type['date_formation']) > date.fromisoformat(self.quarters[type['cadastral_number']]['date']):
+                                            self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
                                     if type['tag'] in self.summary.keys():
                                         self.summary[type['tag']]['count'] += 1
                                     else:
@@ -344,8 +361,9 @@ class CadasterImport:
             <ul style="padding: 0">
                 {}
             </ul>
+            <p>Количество уникальных файлов:<span style="font-weight: 700"> {}</span></p>
 
-        '''.format(self.xmlFilesCount, typesString))
+        '''.format(self.xmlFilesCount, typesString, len(self.quarters.keys())))
         self.dockwidget.progressBarLabel.setText("")
         self.dockwidget.progressBar.reset()
         self.dockwidget.progressBar.setValue(0)

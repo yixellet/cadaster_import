@@ -3,6 +3,7 @@ import re
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
+from .parser_elements.common_data import commonData
 from .parser_elements.quarter import quarter
 from .parser_elements.land_records import land_records
 from .parser_elements.mun_boundaries import mun_boundaries
@@ -50,10 +51,21 @@ class Parser():
     def __init__(self, xml):
         self.tree = ET.parse(xml)
         self.root = self.tree.getroot()
-
+    
+    """
     def getFileType(self):
-        print(self.root.tag)
         return {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
+    """
+    
+    def getFileType(self):
+        result = {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
+        if self.root.tag == 'extract_cadastral_plan_territory':
+            result.update({'cadastral_number': quarter(self.root)['cadastral_number']})
+        elif self.root.tag == 'extract_about_property_land':
+            object = self.root.find('land_record').find('object')
+            result.update({'cadastral_number': commonData(object)['cad_number']})
+        result.update({'date_formation': detailsStatement(self.root)['date_formation']})
+        return result
     
     def parse(self):
         result = {}
