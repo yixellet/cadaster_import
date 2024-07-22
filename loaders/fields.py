@@ -73,6 +73,11 @@ fields = {
         'name': 'cadastral_number',
         'desc': 'Кадастровый номер квартала'
     },
+    'quartal': {
+        'type': QMetaType.QString,
+        'name': 'quartal',
+        'desc': 'Кадастровый номер квартала'
+    },
     'type': {
         'type': QMetaType.QString,
         'name': 'type',

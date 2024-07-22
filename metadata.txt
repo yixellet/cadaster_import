@@ -4,7 +4,7 @@
 
 [general]
 name=cadaster_import
-qgisMinimumVersion=2.99
+qgisMinimumVersion=3.38
 qgisMaximumVersion=3.99
 
 # Provide a brief description of the plugin
@@ -15,8 +15,8 @@ author=yixellet
 
 about=Enter more info about your plugin here
 
-tracker=Provide link to your bug tracker
-repository=Provide link to the code repository
+tracker=https://github.com/yixellet/cadaster_import/issues
+repository=https://github.com/yixellet/cadaster_import
 # End of mandatory metadata
 
 # Recommended items:

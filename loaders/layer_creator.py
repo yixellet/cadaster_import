@@ -24,7 +24,7 @@ class LayerCreator():
                   'land_use_mer'],
         'quarters': ['date_formation', 'cadastral_number', 'area'],
         'municipal_boundaries': ['registration_number', 'registration_number', 'type_boundary'],
-        'zones': ['registration_number', 'registration_number', 'type_boundary', 'type_zone'],
+        'zones': ['registration_number', 'registration_number', 'type_boundary', 'type_zone', 'quartal'],
         'coastlines': ['registration_number', 'registration_number', 'water']
     }
     def __init__(self):
@@ -80,6 +80,8 @@ class LayerCreator():
 
         if count == 0:
             feat = QgsFeature(layer.fields())
+            if data['content'] == 'zones':
+                logMessage(data['registration_number'] + ' ----> ' + data['geom'])
             if data['geom'] != None:
                 feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
             

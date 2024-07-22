@@ -64,9 +64,13 @@ def parseEapl(root):
 
     # Описание местоположения границ ЗУ
     if lr.find('contours_location') != None:
-        result['geom'] = contours(lr.find('contours_location').find('contours'))
-        result['msk_zone'] = getMskZone()
+        result['geom'] = contours(lr.find('contours_location').find('contours'))['geom']
+        result['msk_zone'] = contours(lr.find('contours_location').find('contours'))['msk_zone']
+        #result['msk_zone'] = getMskZone(lr.find('contours_location').find('contours').find('contour').find('entity_spatial'))
     else:
         result['geom'] = None
+    
+    result['content'] = 'lands'
+    result['geometryType'] = 'MultiPolygon'
 
     return result

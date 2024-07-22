@@ -69,7 +69,7 @@ def getMskZone(element) -> str:
     '''
     e = element.find('spatials_elements').find('spatial_element')
     ord = e.find('ordinates').find('ordinate')
-    y_ord = ord.find('y')
+    y_ord = ord.find('y').text
 
     return y_ord[0]
 

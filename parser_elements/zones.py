@@ -11,6 +11,7 @@ def zones(root):
         result = []
         for boundary in cadastral_block.find('zones_and_territories_boundaries').findall('zones_and_territories_record'):
             record = {}
+            record['quartal'] = cadastral_block.find('cadastral_number').text
             b_object_zones_and_territories = boundary.find('b_object_zones_and_territories')
             b_object = b_object_zones_and_territories.find('b_object')
             record['registration_number'] = b_object.find('reg_numb_border').text
