@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from datetime import date
 import re
 from .parser_elements.details_statement import detailsStatement
 from .parser_elements.parse_eapl import parseEapl
@@ -52,19 +53,33 @@ class Parser():
         self.tree = ET.parse(xml)
         self.root = self.tree.getroot()
     
-    """
-    def getFileType(self):
-        return {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
-    """
-    
-    def getFileType(self):
-        result = {'tag': self.root.tag, 'name': self.FILE_TYPES[self.root.tag]['name']}
-        if self.root.tag == 'extract_cadastral_plan_territory':
-            result.update({'cadastral_number': quarter(self.root)['cadastral_number']})
-        elif self.root.tag == 'extract_about_property_land':
-            object = self.root.find('land_record').find('object')
-            result.update({'cadastral_number': commonData(object)['cad_number']})
-        result.update({'date_formation': detailsStatement(self.root)['date_formation']})
+    def getFileType(self) -> dict[str, str, str, date]:
+        """
+        Выполняет первичную проверку XML документа по корневому тегу,
+        является ли он выпиской из ЕГРН.
+        Если корневой тег документа соответствует одному из тегов,
+        перечисленных в константе FILE_TYPES, функция генерирует словарь
+        следующего формата:
+        {
+            'tag': <корневой тег>,
+            'name': <тип документа (на русском языке)>,
+            'cadastral_number': <кадастровый (регистрационный) номер
+                объекта, описанного в документе>,
+            'date_formation': <дата формирования настоящего документа>
+        }
+        """
+        result = None
+        if self.root.tag in self.FILE_TYPES.keys():
+            result = {'tag': self.root.tag, 
+                      'name': self.FILE_TYPES[self.root.tag]['name'],
+                      'date_formation': date.fromisoformat(detailsStatement(self.root)['date_formation'])}
+            if self.root.tag == 'extract_cadastral_plan_territory':
+                result.update({
+                    'cadastral_number': quarter(self.root)['cadastral_number']})
+            elif self.root.tag == 'extract_about_property_land':
+                object = self.root.find('land_record').find('object')
+                result.update({
+                    'cadastral_number': commonData(object)['cad_number']})
         return result
     
     def parse(self):

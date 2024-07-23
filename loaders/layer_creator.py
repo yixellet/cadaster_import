@@ -80,8 +80,8 @@ class LayerCreator():
 
         if count == 0:
             feat = QgsFeature(layer.fields())
-            if data['content'] == 'zones':
-                logMessage(data['registration_number'] + ' ----> ' + data['geom'])
+            # if data['content'] == 'zones':
+                # logMessage(data['registration_number'] + ' ----> ' + data['geom'])
             if data['geom'] != None:
                 feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
             

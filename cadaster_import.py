@@ -24,18 +24,19 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QUrl
 from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtWidgets import QAction
+from qgis.utils import iface
 # Initialize Qt resources from file resources.py
 from .resources import *
 
 # Import the code for the DockWidget
 from .cadaster_import_dockwidget import CadasterImportDockWidget
 from .parser_1 import Parser
-import os.path
 import os
-from zipfile import ZipFile
-from datetime import date
+from zipfile import ZipFile, is_zipfile
+from typing import TextIO, Union
 
 from .cadaster_import_utils import logMessage
+from .options_factory import OptionsFactory
 
 
 class CadasterImport:
@@ -188,6 +189,11 @@ class CadasterImport:
             self.dockwidget.buttonBox.helpRequested.connect(self.showHelp)
 
     #--------------------------------------------------------------------------
+        self.options_factory = OptionsFactory()
+
+        self.options_factory.setTitle(self.tr('Cadaster import'))
+
+        iface.registerOptionsWidgetFactory(self.options_factory)
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -218,6 +224,7 @@ class CadasterImport:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        iface.unregisterOptionsWidgetFactory(self.options_factory)
 
     #--------------------------------------------------------------------------
 
@@ -262,18 +269,19 @@ class CadasterImport:
                 for item in content:
                     self.filesImported += 1
                     path = os.path.join(dirPath, item)
-                    if os.path.isfile(path) and item in unique_files and os.path.splitext(item)[1] == '.xml':
-                        logMessage(item)
-                        with open(path, encoding="utf8") as f:
-                            p = Parser(f)
-                            p.parse()
-                        self.dockwidget.progressBar.setValue(self.filesImported)
+                    if os.path.isfile(path):
+                        if os.path.splitext(item)[1] == '.xml' and item in unique_files:
+                            # logMessage(item)
+                            with open(path, encoding="utf8") as f:
+                                p = Parser(f)
+                                p.parse()
+                            self.dockwidget.progressBar.setValue(self.filesImported)
 
-                    if os.path.isfile(path) and item in unique_files and os.path.splitext(item)[1] == '.zip':
-                        logMessage(item)
+                    if is_zipfile(path):
+                        # logMessage(item)
                         with ZipFile(path, "r") as zip:
                             for f in zip.infolist():
-                                if f.filename.split('.')[-1] == 'xml' and 'report' in f.filename.split('.')[0]:
+                                if f.filename.split('.')[-1] == 'xml' and f.filename in unique_files:
                                     self.filesImported += 1
                                     # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
                                     with zip.open(f.filename, 'r') as xml_from_zip:
@@ -291,8 +299,38 @@ class CadasterImport:
         self.dockwidget.importButton.setEnabled(False)
 
     def analize(self):
-        """Анализ файлов и определение их содержимого
-        """
+        """Анализ файлов и определение их содержимого"""
+        def whatToDoWithXML(file: TextIO, unique_files: dict,
+                            summary: dict, filename: str) -> None:
+            """
+            Определяет, является ли файл выпиской ЕГРН и, если да, 
+            прибавляет на 1 счетчик проанализированных файлов,
+            Аргументы:
+            file -- XML-файл, являющийся выпиской из ЕГРН
+            unique_files -- словарь, хранящий информацию об уникальных
+            (не дублирующихся) XML-файлах
+            summary -- словарь, хранящий информацию о количестве файлов
+            различных типов
+            filename -- имя анализируемого файла
+            """
+            parser = Parser(file)
+            type = parser.getFileType()
+            if type:
+                self.xmlFilesCount += 1
+                if type['cadastral_number'] not in unique_files.keys():
+                    unique_files[type['cadastral_number']] = \
+                    {'date': type['date_formation'], 'filename': filename}
+                else:
+                    if type['date_formation'] > unique_files[type['cadastral_number']]['date']:
+                        unique_files[type['cadastral_number']] = \
+                            {'date': type['date_formation'], 'filename': filename}
+
+
+                if type['tag'] in summary.keys():
+                    summary[type['tag']]['count'] += 1
+                else:
+                    summary[type['tag']] = {'name': type['name'], 'count': 1}
+
         self.summary = {}
         self.quarters = {}
         self.dockwidget.progressBarLabel.setText("Анализ файлов")
@@ -302,50 +340,26 @@ class CadasterImport:
         self.filesChecked = 0
         self.dockwidget.progressBar.setRange(0, self.commonElementsCount)
         self.dockwidget.progressBar.setValue(self.filesChecked)
-        def recursion(dirPath):
+
+        def recursion(dirPath: Union[str, os.PathLike]) -> None:
+            """
+            Рекурсивно проходит по всем файлам и директориям внутри указанной
+            директории, анализирует файлы."""
             content = os.listdir(dirPath)
             for i in content:
                 iPath = os.path.join(dirPath, i)
                 self.filesChecked += 1
                 self.dockwidget.progressBar.setValue(self.filesChecked)
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
-                    self.xmlFilesCount += 1
-                    # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
                     with open(iPath) as file:
-                        parser = Parser(file)
-                        type = parser.getFileType()
-                        # TODO: детектор файлов-дубликатов
-
-                        if type['cadastral_number'] not in self.quarters.keys():
-                            self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
-                        else:
-                            if date.fromisoformat(type['date_formation']) > date.fromisoformat(self.quarters[type['cadastral_number']]['date']):
-                                self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
-
-
-                        if type['tag'] in self.summary.keys():
-                            self.summary[type['tag']]['count'] += 1
-                        else:
-                            self.summary[type['tag']] = {'name': type['name'], 'count': 1}
-                if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.zip':
+                        whatToDoWithXML(file, self.quarters, self.summary, i)
+                if is_zipfile(iPath):
                     with ZipFile(iPath, "r") as zip:
                         for item in zip.infolist():
-                            if item.filename.split('.')[-1] == 'xml' and 'report' in item.filename.split('.')[0]:
-                                self.xmlFilesCount += 1
-                                # logMessage(str(self.xmlFilesCount) + '-----' + iPath)
-                                with zip.open(item.filename, 'r') as xml_from_zip:
-                                    parser = Parser(xml_from_zip)
-                                    type = parser.getFileType()
-
-                                    if type['cadastral_number'] not in self.quarters.keys():
-                                        self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
-                                    else:
-                                        if date.fromisoformat(type['date_formation']) > date.fromisoformat(self.quarters[type['cadastral_number']]['date']):
-                                            self.quarters[type['cadastral_number']] = {'date': type['date_formation'], 'filename': i}
-                                    if type['tag'] in self.summary.keys():
-                                        self.summary[type['tag']]['count'] += 1
-                                    else:
-                                        self.summary[type['tag']] = {'name': type['name'], 'count': 1}
+                            if item.filename.split('.')[-1] == 'xml':
+                                with zip.open(item.filename, 'r') as file:
+                                    whatToDoWithXML(file, self.quarters, 
+                                                    self.summary, item.filename)
                 if os.path.isdir(iPath):
                     count = len(os.listdir(iPath))
                     self.commonElementsCount += count
@@ -368,6 +382,7 @@ class CadasterImport:
         self.dockwidget.progressBar.reset()
         self.dockwidget.progressBar.setValue(0)
         self.dockwidget.importButton.setEnabled(True)
+        # logMessage(str(self.quarters))
 
     def showHelp(self):
         help_file = 'file:///%s/help/index.html' % self.plugin_path
