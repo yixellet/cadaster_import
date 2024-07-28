@@ -1,5 +1,7 @@
 from pyproj import CRS, Transformer
-from ..cadaster_import_utils import logMessage
+from xml.etree.ElementTree import Element
+from typing import Union
+#from ..cadaster_import_utils import logMessage
 
 def defineGeometryType(spatialElement):
     '''
@@ -115,10 +117,13 @@ def contours(element, transformate=False):
     return {'geom': geomWKT, 'msk_zone': zone}
 
 def quarter_contours(element):
-    '''
-    Извлекает геометрию из элемента entity_spatial
-    Принимает на вход элемент entity_spatial
-    '''
+    """_summary_
+
+    :param element: _description_
+    :type element: _type_
+    :return: _description_
+    :rtype: _type_
+    """
     contoursArray = []
     spatialElementsArray = []
     zone = '1'
@@ -135,3 +140,99 @@ def quarter_contours(element):
     geomWKT = 'MULTIPOLYGON(' + ','.join(contoursArray) + ')'
         
     return {'geom': geomWKT, 'msk_zone': zone}
+
+def geometry_type(coords_array: list[str]) -> str:
+    """Определяет тип геометрии (линия или полигон)
+
+    :param coords_array: Список строк формата (x y)
+    :type coords_array: list
+    :return: Возвращает строку MULTIPOLYGON или MULTILINESTRING
+    :rtype: str
+    """
+    firstPoint = coords_array[0].split(' ')
+    lastPoint = coords_array[-1].split(' ')
+    if float(firstPoint[0]) == float(lastPoint[0]) \
+                            and float(firstPoint[1]) == float(lastPoint[1]):
+        return 'MULTIPOLYGON'
+    
+    return 'MULTILINESTRING'
+
+def def_msk_zone(xy: str) -> str:
+    """Определяет зону в МСК-30 (Астраханская область)
+
+    :param xy: Строка, представляющая собой разделенные пробелом координаты
+    :type xy: str
+    :return: Номер зоны в виде строки
+    :rtype: str
+    """
+    x = xy.split(' ')[0]
+    y = xy.split(' ')[1]
+
+    return x[0]
+
+def extract_contours(element: Element, is_quarter: bool = False, 
+                to_wgs: bool = False) -> Union[dict[str, str], None]:
+    """Извлекает геометрию, преобразует координаты
+
+    :param element: XMl-элемент корневой для геометрии 
+    :type element: Element
+
+    :param is_quarter: Флаг, принимающий значение "ИСТИНА", если 
+    извлекается геометрия кадастрового квартала, defaults to False
+    :type is_quarter: bool, optional
+
+    :param to_wgs: Флаг, указывающий на необходимость преобразования
+    геометрии в систему координат WGS-84, defaults to False
+    :type to_wgs: bool, optional
+
+    :returns: Возвращает словарь, ключами которого являются номера зон,
+    в которых представлена геометрия, а значениями сама геометрия в WKT
+    :rtype: dict 
+    """
+
+    result = {}
+    contours_arr = {}
+
+    contours = element.find('contours')
+    geom_type = ''
+    for cont_idx, contour in enumerate(contours.findall('contour')):
+        msk_zone = ''
+        entity_spatial = contour.find('entity_spatial')
+        spatials_elements = entity_spatial.find('spatials_elements')
+        if spatials_elements:
+            sp_elements_arr = []
+            for se_idx, spatial_element \
+                    in enumerate(spatials_elements.findall('spatial_element')):
+                ords = spatial_element.find('ordinates')
+                ords_arr = []
+                for ordinate in ords.findall('ordinate'):
+                    nord = ordinate.find('x').text
+                    east = ordinate.find('y').text
+                    ords_arr.append('{} {}'.format(float(east), float(nord)))
+                if cont_idx == 0 and se_idx == 0:
+                    geom_type += geometry_type(ords_arr)
+                    msk_zone += def_msk_zone(ords_arr[0])
+                sp_elements_arr.append('(' + ','.join(ords_arr) + ')')
+            if msk_zone not in contours_arr:
+                contours_arr[msk_zone] = list(sp_elements_arr)
+            else:
+                contours_arr[msk_zone].append(sp_elements_arr)
+        else:
+            result = None
+    for zone, conts in contours_arr.items():
+        if geom_type == 'MULTIPOLYGON':
+        conts_str = geom_type + '(' + ','.join(conts) + ')'
+        result[zone] = conts_str
+    
+    return result
+
+if __name__ == '__main__':
+    import xml.etree.ElementTree as ET
+
+    tree = ET.parse('parser_elements/report-1.1.xml')
+    root = tree.getroot()
+    br = root.find('boundary_record')
+    mb = br.find('municipal_boundary')
+    cl = mb.find('contours_location')
+    r = extract_contours(cl)
+    print(r)
