@@ -344,7 +344,8 @@ class CadasterImport:
         def recursion(dirPath: Union[str, os.PathLike]) -> None:
             """
             Рекурсивно проходит по всем файлам и директориям внутри указанной
-            директории, анализирует файлы."""
+            директории, анализирует файлы.
+            """
             content = os.listdir(dirPath)
             for i in content:
                 iPath = os.path.join(dirPath, i)
@@ -353,6 +354,8 @@ class CadasterImport:
                 if os.path.isfile(iPath) and os.path.splitext(i)[1] == '.xml':
                     with open(iPath) as file:
                         whatToDoWithXML(file, self.quarters, self.summary, i)
+                    self.xmlFilesCount += 1
+                    self.quarters[i] = True
                 if is_zipfile(iPath):
                     with ZipFile(iPath, "r") as zip:
                         for item in zip.infolist():
@@ -360,29 +363,31 @@ class CadasterImport:
                                 with zip.open(item.filename, 'r') as file:
                                     whatToDoWithXML(file, self.quarters, 
                                                     self.summary, item.filename)
+                                self.xmlFilesCount += 1
+                                self.quarters[item.filename] = True
                 if os.path.isdir(iPath):
                     count = len(os.listdir(iPath))
                     self.commonElementsCount += count
                     self.dockwidget.progressBar.setRange(0, self.commonElementsCount)
                     recursion(iPath)
+        
         recursion(dirPath)
         
         typesString = ''
-        for i in self.summary.values():
-            typesString += '<li>{} - <span style="font-weight: 700">{}<\span></li>'.format(i['name'], i['count'])
+        for filename, _ in self.quarters.items():
+            typesString += '<li>{}</li>'.format(filename)
         self.dockwidget.info.setHtml('''
             <p>Обнаружено XML файлов:<span style="font-weight: 700"> {}</span>, из них:</p>
             <ul style="padding: 0">
                 {}
             </ul>
             <p>Количество уникальных файлов:<span style="font-weight: 700"> {}</span></p>
-
         '''.format(self.xmlFilesCount, typesString, len(self.quarters.keys())))
         self.dockwidget.progressBarLabel.setText("")
         self.dockwidget.progressBar.reset()
         self.dockwidget.progressBar.setValue(0)
         self.dockwidget.importButton.setEnabled(True)
-        # logMessage(str(self.quarters))
+                # logMessage(str(self.quarters))
 
     def showHelp(self):
         help_file = 'file:///%s/help/index.html' % self.plugin_path
