@@ -1,4 +1,5 @@
-from .contours import contours
+from .contours import contours, extract_zone_contours
+from ..cadaster_import_utils import logMessage
 
 def zones(root):
     """
@@ -21,11 +22,16 @@ def zones(root):
                 record['type_zone'] = b_object_zones_and_territories.find('type_zone').find('value').text
             else:
                 record['type_zone'] = None
-            record.update(contours(boundary.find('b_contours_location').find('contours')))
+            #record.update(contours(boundary.find('b_contours_location').find('contours')))
+
 
             record['content'] = 'zones'
             record['geometryType'] = 'MultiPolygon'
-            result.append(record)
+            contours = extract_zone_contours(boundary.find('b_contours_location'))
+            for contour in contours:
+                contour.update(record)
+                result.append(contour)
+                #logMessage(str(contour))
     else:
         result = None
 

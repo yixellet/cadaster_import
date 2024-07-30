@@ -1,7 +1,7 @@
 from pyproj import CRS, Transformer
 from xml.etree.ElementTree import Element
 from typing import Union
-#from ..cadaster_import_utils import logMessage
+from ..cadaster_import_utils import logMessage
 
 def defineGeometryType(spatialElement):
     '''
@@ -200,29 +200,90 @@ def extract_contours(element: Element, is_quarter: bool = False,
         entity_spatial = contour.find('entity_spatial')
         spatials_elements = entity_spatial.find('spatials_elements')
         if spatials_elements:
-            sp_elements_arr = []
+            elements_arr = []
             for se_idx, spatial_element \
                     in enumerate(spatials_elements.findall('spatial_element')):
                 ords = spatial_element.find('ordinates')
-                ords_arr = []
+                element_arr = []
                 for ordinate in ords.findall('ordinate'):
                     nord = ordinate.find('x').text
                     east = ordinate.find('y').text
-                    ords_arr.append('{} {}'.format(float(east), float(nord)))
+                    element_arr.append('{} {}'.format(float(east), float(nord)))
                 if cont_idx == 0 and se_idx == 0:
-                    geom_type += geometry_type(ords_arr)
-                    msk_zone += def_msk_zone(ords_arr[0])
-                sp_elements_arr.append('(' + ','.join(ords_arr) + ')')
+                    geom_type += geometry_type(element_arr)
+                    msk_zone += def_msk_zone(element_arr[0])
+                elements_arr.append('(' + ','.join(element_arr) + ')')
             if msk_zone not in contours_arr:
-                contours_arr[msk_zone] = list(sp_elements_arr)
+                if geom_type == 'MULTIPOLYGON':
+                    contours_arr[msk_zone] = '(' + ','.join(elements_arr) + ')'
+                if geom_type == 'MULTILINESTRING':
+                    contours_arr[msk_zone] = elements_arr
             else:
-                contours_arr[msk_zone].append(sp_elements_arr)
+                if geom_type == 'MULTIPOLYGON':
+                    contours_arr[msk_zone].append('(' + ','.join(elements_arr) + ')')
+                if geom_type == 'MULTILINESTRING':
+                    contours_arr[msk_zone].append(elements_arr)
         else:
             result = None
+        print(elements_arr)
     for zone, conts in contours_arr.items():
-        if geom_type == 'MULTIPOLYGON':
         conts_str = geom_type + '(' + ','.join(conts) + ')'
         result[zone] = conts_str
+    
+    return result
+
+
+def extract_zone_contours(element: Element, to_wgs: bool = False) -> Union[dict[str, str], None]:
+    """Извлекает геометрию, преобразует координаты
+
+    :param element: XMl-элемент корневой для геометрии 
+    :type element: Element
+
+    :param is_quarter: Флаг, принимающий значение "ИСТИНА", если 
+    извлекается геометрия кадастрового квартала, defaults to False
+    :type is_quarter: bool, optional
+
+    :param to_wgs: Флаг, указывающий на необходимость преобразования
+    геометрии в систему координат WGS-84, defaults to False
+    :type to_wgs: bool, optional
+
+    :returns: Возвращает словарь, ключами которого являются номера зон,
+    в которых представлена геометрия, а значениями сама геометрия в WKT
+    :rtype: dict 
+    """
+
+    result = []
+
+    contours = element.find('contours')
+    geom_type = ''
+    for cont_idx, contour in enumerate(contours.findall('contour')):
+        msk_zone = ''
+        entity_spatial = contour.find('entity_spatial')
+        spatials_elements = entity_spatial.find('spatials_elements')
+        if spatials_elements:
+            elements_arr = []           # массив ['(x y, x y, ...)', '(x y, x y, ...)', ...]
+            for se_idx, spatial_element \
+                    in enumerate(spatials_elements.findall('spatial_element')):
+                ords = spatial_element.find('ordinates')
+                ordinates_arr = []      # массив ['x y', 'x y', ...]
+                for ordinate in ords.findall('ordinate'):
+                    nord = ordinate.find('x').text
+                    east = ordinate.find('y').text
+                    ordinates_arr.append('{} {}'.format(float(east), float(nord)))
+                if cont_idx == 0 and se_idx == 0:
+                    geom_type += geometry_type(ordinates_arr)
+                msk_zone = def_msk_zone(ordinates_arr[0])
+                elements_arr.append('(' + ','.join(ordinates_arr) + ')')
+            geometry_string = '{}{}{}{}'.format(
+                geom_type, 
+                '((' if geom_type == 'MULTIPOLYGON' else '(', 
+                ','.join(elements_arr),
+                '))' if geom_type == 'MULTIPOLYGON' else ')'
+            )
+            #geometry_string = geom_type + '((' if geom_type == 'MULTIPOLYGON' else '(' + ','.join(elements_arr) + '))' if geom_type == 'MULTIPOLYGON' else ')'
+            result.append({'geom': geometry_string, 'msk_zone': msk_zone})
+        else:
+            result.append({'geom': None, 'msk_zone': '1'})
     
     return result
 
@@ -234,5 +295,5 @@ if __name__ == '__main__':
     br = root.find('boundary_record')
     mb = br.find('municipal_boundary')
     cl = mb.find('contours_location')
-    r = extract_contours(cl)
+    r = extract_zone_contours(cl)
     print(r)
