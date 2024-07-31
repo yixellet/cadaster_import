@@ -59,12 +59,12 @@ class LayerCreator():
         """
         
         layers = { layer.name(): layer for layer in QgsProject.instance().mapLayers().values() }
-        generatedLayerName = 'temp_' + data['content'] + '_' + data['geometryType'] + '__' + data['msk_zone']
+        generatedLayerName = 'temp_' + data['content'] + '_' + data['geometry_type'] + '__' + data['crs']
 
         if generatedLayerName in layers.keys():
             layer = layers[generatedLayerName]
         else:
-            layer = self.createLayer(data['geometryType'], data['content'], data['msk_zone'])
+            layer = self.createLayer(data['geometry_type'], data['content'], data['crs'])
         
         s = None
         if data['content'] in ('municipal_boundaries', 'zones', 'coastlines'):
@@ -83,7 +83,10 @@ class LayerCreator():
             # if data['content'] == 'zones':
                 # logMessage(data['registration_number'] + ' ----> ' + data['geom'])
             if data['geom'] != None:
-                feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
+                if data['content'] in ('zones', 'lands'):
+                    feat.setGeometry(data['geom'])
+                else:
+                    feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
             
             for field in self.FIELDS[data['content']]:
                 # logMessage(str(data))

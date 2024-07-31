@@ -1,4 +1,5 @@
 from pyproj import CRS, Transformer
+from qgis.core import QgsPointXY, QgsGeometry, Qgis
 from xml.etree.ElementTree import Element
 from typing import Union
 from ..cadaster_import_utils import logMessage
@@ -272,7 +273,8 @@ def extract_zone_contours(element: Element, to_wgs: bool = False) -> Union[dict[
                     ordinates_arr.append('{} {}'.format(float(east), float(nord)))
                 if cont_idx == 0 and se_idx == 0:
                     geom_type += geometry_type(ordinates_arr)
-                msk_zone = def_msk_zone(ordinates_arr[0])
+                if se_idx == 0:
+                    msk_zone = def_msk_zone(ordinates_arr[0])
                 elements_arr.append('(' + ','.join(ordinates_arr) + ')')
             geometry_string = '{}{}{}{}'.format(
                 geom_type, 
@@ -284,7 +286,100 @@ def extract_zone_contours(element: Element, to_wgs: bool = False) -> Union[dict[
             result.append({'geom': geometry_string, 'msk_zone': msk_zone})
         else:
             result.append({'geom': None, 'msk_zone': '1'})
-    
+    #logMessage(str(result))
+    return result
+
+
+def geometry_type_2(coords_array: list[QgsPointXY]) -> str:
+    """Определяет тип геометрии (линия или полигон)
+
+    :param coords_array: Список строк формата (x y)
+    :type coords_array: list
+    :return: Возвращает строку MULTIPOLYGON, MULTILINESTRING или POINT
+    :rtype: str
+    """
+    if len(coords_array) == 1:
+        return 'POINT'
+    firstPoint = coords_array[0]
+    lastPoint = coords_array[-1]
+    if firstPoint.x() == lastPoint.x() and firstPoint.y() == lastPoint.y():
+        return 'MULTIPOLYGON'
+    else:
+        return 'MULTILINESTRING'
+
+def def_msk_zone_2(point: QgsPointXY) -> str:
+    """Определяет зону в МСК-30 (Астраханская область)
+
+    :param point: Точка
+    :type point: QgsPointXY
+    :return: Номер зоны в виде строки
+    :rtype: str
+    """
+    east = point.x()
+    nord = point.y()
+
+    return str(east)[0]
+
+def extract_zone_contours_2(element: Element, 
+                            to_wgs: bool = False) -> list[dict[str, Union[QgsGeometry, None]]]:
+    """Извлекает геометрию, преобразует координаты
+
+    :param element: XMl-элемент корневой для геометрии 
+    :type element: Element
+
+    :param is_quarter: Флаг, принимающий значение "ИСТИНА", если 
+    извлекается геометрия кадастрового квартала, defaults to False
+    :type is_quarter: bool, optional
+
+    :param to_wgs: Флаг, указывающий на необходимость преобразования
+    геометрии в систему координат WGS-84, defaults to False
+    :type to_wgs: bool, optional
+
+    :returns: Возвращает список словарей формата {'geom': <QgsGeometry>,
+    'msk_zone': <зона МСК-30 (1 или 2)>}
+    :rtype: list 
+    """
+
+    result = []
+
+    contours = element.find('contours')
+    geom_type = ''
+    for cont_idx, contour in enumerate(contours.findall('contour')):
+        msk_zone = ''
+        entity_spatial = contour.find('entity_spatial')
+        spatials_elements = entity_spatial.find('spatials_elements')
+        if spatials_elements:
+            elements_arr = []
+            check_idx = 0
+            for se_idx, spatial_element \
+                    in enumerate(spatials_elements.findall('spatial_element')):
+                ords = spatial_element.find('ordinates')
+                ordinates_arr = []
+                for ordinate in ords.findall('ordinate'):
+                    nord = float(ordinate.find('x').text)
+                    east = float(ordinate.find('y').text)
+                    ordinates_arr.append(QgsPointXY(east, nord))
+                if cont_idx == 0 and se_idx == 0:
+                    geom_type = geometry_type_2(ordinates_arr)
+                if geom_type == 'MULTIPOLYGON':
+                    geometry_part = QgsGeometry.fromPolygonXY([ordinates_arr])
+                if geom_type == 'MULTILINESTRING':
+                    geometry_part = QgsGeometry.fromPolyline(ordinates_arr)
+                if geom_type == 'POINT':
+                    geometry_part = QgsGeometry.fromPointXY(ordinates_arr[0])
+                if se_idx == 0:
+                    msk_zone = str(ordinates_arr[0].x())[0]
+                    elements_arr.append(geometry_part)
+                polygon_geometry_engine = QgsGeometry.createGeometryEngine(geometry_part.constGet())
+                polygon_geometry_engine.prepareGeometry()
+                if polygon_geometry_engine.within(elements_arr[check_idx].constGet()):
+                    elements_arr[check_idx].addRing(list(reversed(ordinates_arr)))
+                else:
+                    elements_arr[check_idx].addPartGeometry(geometry_part)
+            for e in elements_arr:
+                result.append({'geom': e, 'msk_zone': msk_zone})
+        else:
+            result.append({'geom': None, 'msk_zone': '1'})
     return result
 
 if __name__ == '__main__':

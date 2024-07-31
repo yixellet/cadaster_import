@@ -4,7 +4,8 @@ from .record_info import recordInfo
 from .common_data import commonData
 from .land_params import landParams
 from .cad_link import cadLink
-from .contours import contours, getMskZone
+from .contours import contours, getMskZone, extract_zone_contours_2
+from ..cadaster_import_utils import logMessage
 
 def parseEapl(root):
     '''
@@ -62,15 +63,19 @@ def parseEapl(root):
         result['address'] = None
         result['rel_position'] = None
 
+    result['content'] = 'lands'
+    result['geometryType'] = 'MultiPolygon'
     # Описание местоположения границ ЗУ
     if lr.find('contours_location') != None:
-        result['geom'] = contours(lr.find('contours_location').find('contours'))['geom']
-        result['msk_zone'] = contours(lr.find('contours_location').find('contours'))['msk_zone']
+        contours = extract_zone_contours_2(lr.find('contours_location'))[0]
+        logMessage(str(contours))
+        result.update(contours)
+        #result['geom'] = contours(lr.find('contours_location').find('contours'))['geom']
+        #result['msk_zone'] = contours(lr.find('contours_location').find('contours'))['msk_zone']
         #result['msk_zone'] = getMskZone(lr.find('contours_location').find('contours').find('contour').find('entity_spatial'))
     else:
         result['geom'] = None
+        result['msk_zone'] = '1'
     
-    result['content'] = 'lands'
-    result['geometryType'] = 'MultiPolygon'
 
     return result
