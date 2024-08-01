@@ -1,5 +1,5 @@
 GEOMETRY_TYPES = {
-    1: 'Point',
-    2: 'Line',
-    3: 'Polygon'
+    0: 'Point',
+    1: 'Line',
+    2: 'Polygon'
 }

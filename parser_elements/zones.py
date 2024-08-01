@@ -1,4 +1,3 @@
-from .contours import contours, extract_zone_contours_2
 from .Geometry import Geometry
 from ..cadaster_import_utils import logMessage
 
@@ -24,19 +23,15 @@ def zones(root):
                 record['type_zone'] = b_object_zones_and_territories.find('type_zone').find('value').text
             else:
                 record['type_zone'] = None
-            #record.update(contours(boundary.find('b_contours_location').find('contours')))
-
 
             record['content'] = OBJECT_TYPE
             geometry = Geometry(boundary.find('b_contours_location'), OBJECT_TYPE, record['registration_number'])
             geometry_array = geometry.extract_geometry()
-            #contours = extract_zone_contours_2(boundary.find('b_contours_location'))
+            
             for contour in geometry_array:
                 contour.update(record)
                 result.append(contour)
-                #logMessage(str(contour))
     else:
         result = None
-
 
     return result

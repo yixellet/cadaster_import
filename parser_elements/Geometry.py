@@ -40,14 +40,12 @@ class Geometry():
         :return: Возвращает 1 - для линии, 2 - для полигона
         :rtype: int
         """
-        if len(coords_array) == 1:
-            return 0
         firstPoint = coords_array[0]
         lastPoint = coords_array[-1]
         if firstPoint.x() == lastPoint.x() and firstPoint.y() == lastPoint.y():
-            return GEOMETRY_TYPES[1]
-        else:
             return GEOMETRY_TYPES[2]
+        else:
+            return GEOMETRY_TYPES[1]
 
     def define_msk_zone(self, point: QgsPointXY, 
                         sk_id: str = '') -> str:
@@ -61,11 +59,11 @@ class Geometry():
         :rtype: str
         """
         cad_number_splitted = re.split('[-:]', self.cad_number)
-        region_code = cad_number_splitted[0]
+        region_code = cad_number_splitted[0]    # '30'
         if cad_number_splitted[1] != '00':
             for zone, district_list in \
                 MSK_ZONES[cad_number_splitted[0]].items():
-                if cad_number_splitted in district_list:
+                if cad_number_splitted[1] in district_list:
                     return region_code + '.' + zone
         else:
             # TODO: Разработать алгоритм определения МСК других субъектов
@@ -111,8 +109,7 @@ class Geometry():
             if geom_contour['crs'] not in temp_result:
                 temp_result[geom_contour['crs']] = geom_contour
             else:
-                logMessage(str(geom_contour))
-                temp_result[geom_contour['crs']]['geom'].addPartGeometry(contour['geom'])
+                temp_result[geom_contour['crs']]['geom'].addPartGeometry(geom_contour['geom'])
 
         return temp_result.values()
 
@@ -132,13 +129,13 @@ class Geometry():
         :rtype: dict
         """
 
-        result = {'geom': None, 'crs': None, 'geometry_type': None}
+        result = {}
 
         entity_spatial = root_element.find('entity_spatial')
         msk_zone = ''
         spatials_elements = entity_spatial.find('spatials_elements')
         if spatials_elements:
-            contour = QgsGeometry()
+            contour = None
             for se_idx, spatial_element \
                     in enumerate(spatials_elements.findall('spatial_element')):
                 ords = spatial_element.find('ordinates')
@@ -147,32 +144,36 @@ class Geometry():
                     nord = float(ordinate.find('x').text)
                     east = float(ordinate.find('y').text)
                     ordinates_arr.append(QgsPointXY(east, nord))
+                
+                geometry_type = self.define_geometry_type(ordinates_arr)
                 if se_idx == 0:
                     msk_zone = self.define_msk_zone(
                         ordinates_arr[0], 
                         self.extract_sk_id(entity_spatial))
-                
-                geometry_type = self.define_geometry_type(ordinates_arr)
-                if geometry_type == 1:
-                    contour.addPartGeometry(
-                        QgsGeometry.fromPolyline(ordinates_arr))
-                if geometry_type == 2:
-                    contour_part = QgsGeometry.fromPolygonXY(
-                        [ordinates_arr])
-                    if se_idx == 0:
-                        contour.addPartGeometry(contour_part)
-                    else:
-                        polygon_geometry_engine = \
-                            QgsGeometry.createGeometryEngine(contour_part.constGet())
-                        polygon_geometry_engine.prepareGeometry()
-                        if polygon_geometry_engine.within(contour.constGet()):
-                            contour.addRing(list(reversed(ordinates_arr)))
+                    if geometry_type == GEOMETRY_TYPES[1]:
+                        contour = QgsGeometry.fromPolyline(ordinates_arr)
+                    if geometry_type == GEOMETRY_TYPES[2]:
+                        contour = QgsGeometry.fromPolygonXY([ordinates_arr])
+                else:                
+                    if geometry_type == GEOMETRY_TYPES[1]:
+                        contour.addPartGeometry(
+                            QgsGeometry.fromPolyline(ordinates_arr))
+                    if geometry_type == GEOMETRY_TYPES[2]:
+                        contour_part = QgsGeometry.fromPolygonXY(
+                            [ordinates_arr])
+                        if se_idx == 0:
+                            contour.addPartGeometry(contour_part)
                         else:
-                            contour.addPartGeometry(contour)
+                            polygon_geometry_engine = \
+                                QgsGeometry.createGeometryEngine(contour_part.constGet())
+                            polygon_geometry_engine.prepareGeometry()
+                            if polygon_geometry_engine.within(contour.constGet()):
+                                contour.addRing(list(reversed(ordinates_arr)))
+                            else:
+                                contour.addPartGeometry(contour)
             result['geom'] = contour
             result['crs'] = msk_zone
             result['geometry_type'] = geometry_type
         else:
             result = {'geom': None, 'crs': msk_zone, 'geometry_type': None}
-        
         return result
