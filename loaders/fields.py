@@ -38,6 +38,11 @@ fields = {
         'name': 'cad_works',
         'desc': 'Сведения о кадастровом инженере'
     },
+    'subtype': {
+        'type': QMetaType.QString,
+        'name': 'subtype',
+        'desc': 'Подтип'
+    },
     'address_type': {
         'type': QMetaType.QString,
         'name': 'address_type',
@@ -198,20 +203,15 @@ fields = {
         'name': 'old_numbers',
         'desc': 'Ранее присвоенные номера'
     },
-    'common_land': {
+    'common_land_cad_number': {
         'type': QMetaType.QString,
-        'name': 'common_land',
-        'desc': 'Единое землепользование'
+        'name': 'common_land_cad_number',
+        'desc': 'Кадастровый номер единого землепользования'
     },
     'land_cad_numbers': {
         'type': QMetaType.QString,
         'name': 'land_cad_numbers',
         'desc': 'Кадастровые номера иных объектов недвижимости (земельных участков)'
-    },
-    'common_land': {
-        'type': QMetaType.QString,
-        'name': 'common_land',
-        'desc': 'Единое землепользование'
     },
     'floors': {
         'type': QMetaType.QString,

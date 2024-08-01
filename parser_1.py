@@ -6,12 +6,13 @@ from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
 from .parser_elements.common_data import commonData
 from .parser_elements.quarter import quarter
-from .parser_elements.land_records import land_records
+# from .parser_elements.land_records import land_records
+from .parser_elements.LandRecord import LandRecord
 from .parser_elements.mun_boundaries import mun_boundaries
 from .parser_elements.zones import zones
 from .parser_elements.coastlines import coastlines
 from .parser_elements.contours import getGeometryInfo
-from .loaders.layer_creator import LayerCreator
+from .loaders.layer_creator_1 import LayerCreator
 from .cadaster_import_utils import logMessage
 
 class Parser():
@@ -84,7 +85,8 @@ class Parser():
     
     def parse(self):
         result = {}
-        result.update(detailsStatement(self.root))
+        details = detailsStatement(self.root)
+        result.update(details)
         if self.root.tag == 'extract_about_property_land':
             result.update(parseEapl(self.root))
             LayerCreator.loadData(result)
@@ -92,7 +94,20 @@ class Parser():
             result.update(parseEapc(self.root))
             LayerCreator.loadData(result)
         if self.root.tag == 'extract_cadastral_plan_territory':
-            #logMessage(self.root.tag)
+            cad_blocks = self.root.find('cadastral_blocks')
+            if cad_blocks:
+                for block in cad_blocks.findall('cadastral_block'):
+                    record_data = block.find('record_data')
+                    if record_data:
+                        base_data = record_data.find('base_data')
+                        land_records = base_data.find('land_records')
+                        if land_records:
+                            for land_record in land_records:
+                                record= LandRecord(land_record)
+                                record.parse()
+                                data = record.data
+                                data.update(details)
+                                LayerCreator.loadData(data)
             """
             result.update(quarter(self.root))
             LayerCreator.loadData(result)
@@ -101,6 +116,7 @@ class Parser():
                 for land_record in lands:
                     land_record.update(detailsStatement(self.root))
                     LayerCreator.loadData(land_record)
+            
             mun_bounds = mun_boundaries(self.root)
             if mun_bounds:
                 for mun_bound in mun_bounds:
@@ -110,9 +126,9 @@ class Parser():
                 for c in coastline:
                     LayerCreator.loadData(c)
 
-            """
+            
             zone = zones(self.root)
             if zone:
                 for z in zone:
                     LayerCreator.loadData(z)
-    
+            """

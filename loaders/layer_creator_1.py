@@ -18,7 +18,7 @@ class LayerCreator():
         #          'land_use_mer', 'gr_reg_numb_border', 'gr_land_use', 'gr_permitted_use_text', 
         #          'ascendant_cad_numbers', 'descendant_cad_numbers', 'included_objects', 'facility_cad_number', 'common_land'],
         'lands': ['registration_number', 'date_formation', 'address', 
-                  'address_type', 'subtype', 'common_land_cad_number',
+                  'address_type', 
                   'cad_number', 'type', 'area_inaccuracy', 
                   'area', 'area_type', 'land_use_by_document', 'land_use', 
                   'land_use_mer'],
@@ -30,6 +30,7 @@ class LayerCreator():
     def __init__(self):
         pass
     
+    @classmethod
     def createLayer(self, geometryType: str, content: str, mskZone: str) -> QgsVectorLayer:
         """Создаёт новый слой в QGIS и возвращает его.
 
@@ -43,7 +44,6 @@ class LayerCreator():
 
         for field in fields.values():
             if field['name'] in self.FIELDS[content]:
-                logMessage(str(field))
                 provider.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
         vectorLayer.updateFields()
         QgsProject.instance().addMapLayer(vectorLayer)
@@ -90,7 +90,6 @@ class LayerCreator():
             
             for field in self.FIELDS[data['content']]:
                 # logMessage(str(data))
-                #attribute = None
                 feat.setAttribute(field, str(data[field]) if isinstance(data[field], (dict, list)) else data[field])
             
             layer.dataProvider().addFeature(feat)

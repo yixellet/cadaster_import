@@ -13,7 +13,7 @@ class Geometry():
     Инструмент для извлечения геометрической информации об объектах ЕГРН
     """
 
-    def __init__(self, element: Element, 
+    def __init__(self, element: Union[Element, None], 
                  object: str, 
                  cad_number: str) -> None:
         """Инициализация экземпляра класса Geometry
@@ -31,8 +31,8 @@ class Geometry():
         self.object_type = object
         self.cad_number = cad_number
     
-    @staticmethod
-    def define_geometry_type(coords_array: list[QgsPointXY]) -> int:
+    def define_geometry_type(self, 
+                             coords_array: Union[list[QgsPointXY], None] = None) -> int:
         """Определяет тип геометрии (линия или полигон)
 
         :param coords_array: Список строк формата (x y)
@@ -40,14 +40,24 @@ class Geometry():
         :return: Возвращает 1 - для линии, 2 - для полигона
         :rtype: int
         """
-        firstPoint = coords_array[0]
-        lastPoint = coords_array[-1]
-        if firstPoint.x() == lastPoint.x() and firstPoint.y() == lastPoint.y():
-            return GEOMETRY_TYPES[2]
-        else:
-            return GEOMETRY_TYPES[1]
+        
+        match self.object_type:
+            case 'constructions':
+                if coords_array:
+                    firstPoint = coords_array[0]
+                    lastPoint = coords_array[-1]
+                    if firstPoint.x() == lastPoint.x() and firstPoint.y() == lastPoint.y():
+                        return GEOMETRY_TYPES[2]
+                    else:
+                        return GEOMETRY_TYPES[1]
+                else:
+                    GEOMETRY_TYPES[2]
+            case 'coastlines':
+                return GEOMETRY_TYPES[1]
+            case _:
+                return GEOMETRY_TYPES[2]
 
-    def define_msk_zone(self, point: QgsPointXY, 
+    def define_msk_zone(self, point: Union[QgsPointXY, None] = None, 
                         sk_id: str = '') -> str:
         """Определяет зону в МСК-30 (Астраханская область)
 
@@ -60,17 +70,12 @@ class Geometry():
         """
         cad_number_splitted = re.split('[-:]', self.cad_number)
         region_code = cad_number_splitted[0]    # '30'
-        if cad_number_splitted[1] != '00':
-            for zone, district_list in \
-                MSK_ZONES[cad_number_splitted[0]].items():
-                if cad_number_splitted[1] in district_list:
-                    return region_code + '.' + zone
-        else:
-            # TODO: Разработать алгоритм определения МСК других субъектов
+        # TODO: Разработать алгоритм определения МСК других субъектов
+        if point:
             east = point.x()
             nord = point.y()
-
             return region_code + '.' + str(east)[0]
+        return ''
 
     @staticmethod
     def extract_sk_id(entity_spatial: Element) -> Union[str, None]:
@@ -100,6 +105,12 @@ class Geometry():
         'msk_zone': <зона МСК-30 (1 или 2)>}
         :rtype: list 
         """
+        if self.root_element == None:
+            msk_zone = self.define_msk_zone()
+            geometry_type = self.define_geometry_type()
+            null_result = [
+                {'geom': None, 'crs': msk_zone, 'geometry_type': geometry_type}]
+            return null_result
 
         temp_result = {}
 
@@ -111,9 +122,10 @@ class Geometry():
             else:
                 temp_result[geom_contour['crs']]['geom'].addPartGeometry(geom_contour['geom'])
 
-        return temp_result.values()
+        return list(temp_result.values())
 
-    def extract_single_contour(self, root_element: Element, to_wgs: bool = False) -> \
+    def extract_single_contour(self, 
+                               root_element: Element, to_wgs: bool = False) -> \
         dict[str, Union[str, QgsGeometry]]:
         """
         Извлекает геометрическую информацию из одного конкретного контура
@@ -133,6 +145,7 @@ class Geometry():
 
         entity_spatial = root_element.find('entity_spatial')
         msk_zone = ''
+        geometry_type = ''
         spatials_elements = entity_spatial.find('spatials_elements')
         if spatials_elements:
             contour = None
@@ -175,5 +188,5 @@ class Geometry():
             result['crs'] = msk_zone
             result['geometry_type'] = geometry_type
         else:
-            result = {'geom': None, 'crs': msk_zone, 'geometry_type': None}
+            result = {'geom': None, 'crs': msk_zone, 'geometry_type': geometry_type}
         return result
