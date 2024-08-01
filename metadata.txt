@@ -9,7 +9,7 @@ qgisMaximumVersion=3.99
 
 # Provide a brief description of the plugin
 description=Dialog plugin template
-version=0.1
+version=0.2
 author=yixellet
 #email=yixwellet@gmail.com
 

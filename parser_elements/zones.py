@@ -1,4 +1,4 @@
-from .contours import contours, extract_zone_contours
+from .contours import contours, extract_zone_contours_2
 from ..cadaster_import_utils import logMessage
 
 def zones(root):
@@ -27,7 +27,7 @@ def zones(root):
 
             record['content'] = 'zones'
             record['geometryType'] = 'MultiPolygon'
-            contours = extract_zone_contours(boundary.find('b_contours_location'))
+            contours = extract_zone_contours_2(boundary.find('b_contours_location'))
             for contour in contours:
                 contour.update(record)
                 result.append(contour)

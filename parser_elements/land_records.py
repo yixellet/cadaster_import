@@ -1,7 +1,7 @@
 from .common_data import commonData
 from .land_params import landParams
 from .address import address
-from .contours import contours
+from .contours import contours, extract_zone_contours_2
 from ..cadaster_import_utils import logMessage
 
 def land_records(root):
@@ -25,7 +25,9 @@ def land_records(root):
                     record['address_type'] = None
                 if land_record.find('contours_location') != None:
                     # logMessage(land_record.find('contours_location').text)
-                    record.update(contours(land_record.find('contours_location').find('contours')))
+                    contours = extract_zone_contours_2(land_record.find('contours_location'))[0]
+                    #logMessage(str(contours))
+                    record.update(contours)
                 else:
                     record['geom'] = None
                     if record['cad_number'][3:4] in ('01', '03', '07', '08', '10', '11'):

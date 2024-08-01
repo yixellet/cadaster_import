@@ -83,7 +83,10 @@ class LayerCreator():
             # if data['content'] == 'zones':
                 # logMessage(data['registration_number'] + ' ----> ' + data['geom'])
             if data['geom'] != None:
-                feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
+                if data['content'] in ('zones', 'lands'):
+                    feat.setGeometry(data['geom'])
+                else:
+                    feat.setGeometry(QgsGeometry.fromWkt(data['geom']))
             
             for field in self.FIELDS[data['content']]:
                 # logMessage(str(data))
