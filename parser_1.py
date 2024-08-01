@@ -93,6 +93,7 @@ class Parser():
             LayerCreator.loadData(result)
         if self.root.tag == 'extract_cadastral_plan_territory':
             #logMessage(self.root.tag)
+            """
             result.update(quarter(self.root))
             LayerCreator.loadData(result)
             lands = land_records(self.root)
@@ -104,12 +105,14 @@ class Parser():
             if mun_bounds:
                 for mun_bound in mun_bounds:
                     LayerCreator.loadData(mun_bound)
-            zone = zones(self.root)
-            if zone:
-                for z in zone:
-                    LayerCreator.loadData(z)
             coastline = coastlines(self.root)
             if coastline:
                 for c in coastline:
                     LayerCreator.loadData(c)
+
+            """
+            zone = zones(self.root)
+            if zone:
+                for z in zone:
+                    LayerCreator.loadData(z)
     

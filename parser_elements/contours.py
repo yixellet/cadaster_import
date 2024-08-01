@@ -295,17 +295,33 @@ def geometry_type_2(coords_array: list[QgsPointXY]) -> str:
 
     :param coords_array: Список строк формата (x y)
     :type coords_array: list
-    :return: Возвращает строку MULTIPOLYGON или MULTILINESTRING
+    :return: Возвращает строку MULTIPOLYGON, MULTILINESTRING или POINT
     :rtype: str
     """
+    if len(coords_array) == 1:
+        return 'POINT'
     firstPoint = coords_array[0]
     lastPoint = coords_array[-1]
     if firstPoint.x() == lastPoint.x() and firstPoint.y() == lastPoint.y():
         return 'MULTIPOLYGON'
-    
-    return 'MULTILINESTRING'
+    else:
+        return 'MULTILINESTRING'
 
-def extract_zone_contours_2(element: Element, to_wgs: bool = False) -> Union[dict[str, str], None]:
+def def_msk_zone_2(point: QgsPointXY) -> str:
+    """Определяет зону в МСК-30 (Астраханская область)
+
+    :param point: Точка
+    :type point: QgsPointXY
+    :return: Номер зоны в виде строки
+    :rtype: str
+    """
+    east = point.x()
+    nord = point.y()
+
+    return str(east)[0]
+
+def extract_zone_contours_2(element: Element, 
+                            to_wgs: bool = False) -> list[dict[str, Union[QgsGeometry, None]]]:
     """Извлекает геометрию, преобразует координаты
 
     :param element: XMl-элемент корневой для геометрии 
@@ -319,9 +335,9 @@ def extract_zone_contours_2(element: Element, to_wgs: bool = False) -> Union[dic
     геометрии в систему координат WGS-84, defaults to False
     :type to_wgs: bool, optional
 
-    :returns: Возвращает словарь, ключами которого являются номера зон,
-    в которых представлена геометрия, а значениями сама геометрия в WKT
-    :rtype: dict 
+    :returns: Возвращает список словарей формата {'geom': <QgsGeometry>,
+    'msk_zone': <зона МСК-30 (1 или 2)>}
+    :rtype: list 
     """
 
     result = []
@@ -333,19 +349,24 @@ def extract_zone_contours_2(element: Element, to_wgs: bool = False) -> Union[dic
         entity_spatial = contour.find('entity_spatial')
         spatials_elements = entity_spatial.find('spatials_elements')
         if spatials_elements:
-            elements_arr = []           # массив ['(x y, x y, ...)', '(x y, x y, ...)', ...]
+            elements_arr = []
             check_idx = 0
             for se_idx, spatial_element \
                     in enumerate(spatials_elements.findall('spatial_element')):
                 ords = spatial_element.find('ordinates')
-                ordinates_arr = []      # массив ['x y', 'x y', ...]
+                ordinates_arr = []
                 for ordinate in ords.findall('ordinate'):
                     nord = float(ordinate.find('x').text)
                     east = float(ordinate.find('y').text)
                     ordinates_arr.append(QgsPointXY(east, nord))
                 if cont_idx == 0 and se_idx == 0:
-                    geom_type += geometry_type_2(ordinates_arr)
-                geometry_part = QgsGeometry.fromPolygonXY([ordinates_arr])
+                    geom_type = geometry_type_2(ordinates_arr)
+                if geom_type == 'MULTIPOLYGON':
+                    geometry_part = QgsGeometry.fromPolygonXY([ordinates_arr])
+                if geom_type == 'MULTILINESTRING':
+                    geometry_part = QgsGeometry.fromPolyline(ordinates_arr)
+                if geom_type == 'POINT':
+                    geometry_part = QgsGeometry.fromPointXY(ordinates_arr[0])
                 if se_idx == 0:
                     msk_zone = str(ordinates_arr[0].x())[0]
                     elements_arr.append(geometry_part)
@@ -355,20 +376,10 @@ def extract_zone_contours_2(element: Element, to_wgs: bool = False) -> Union[dic
                     elements_arr[check_idx].addRing(list(reversed(ordinates_arr)))
                 else:
                     elements_arr[check_idx].addPartGeometry(geometry_part)
-            """
-            checking_idx = 0
-            for idx, element in enumerate(elements_arr):
-                if idx != checking_idx:
-                    polygon_geometry_engine = QgsGeometry.createGeometryEngine(element.constGet())
-                    polygon_geometry_engine.prepareGeometry()
-                    if polygon_geometry_engine.within(elements_arr[checking_idx]):
-                        elements_arr[checking_idx].addRing()
-            """
             for e in elements_arr:
                 result.append({'geom': e, 'msk_zone': msk_zone})
         else:
             result.append({'geom': None, 'msk_zone': '1'})
-    #logMessage(str(result))
     return result
 
 if __name__ == '__main__':
