@@ -369,7 +369,7 @@ class CadasterImport:
         
         typesString = ''
         for i in self.summary.values():
-            typesString += '<li>{} - <span style="font-weight: 700">{}<\span></li>'.format(i['name'], i['count'])
+            typesString += '<li>{} - <span style="font-weight: 700">{}</span></li>'.format(i['name'], i['count'])
         self.dockwidget.info.setHtml('''
             <p>Обнаружено XML файлов:<span style="font-weight: 700"> {}</span>, из них:</p>
             <ul style="padding: 0">

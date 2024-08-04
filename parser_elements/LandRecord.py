@@ -52,7 +52,8 @@ class LandRecord():
         if cad_links:
             common_land = cad_links.find('common_land')
             common_land_cad_number = common_land.find('common_land_cad_number')
-            self.data['common_land_cad_number'] = common_land_cad_number.find('cad_number')
+            self.data['common_land_cad_number'] = \
+                common_land_cad_number.find('cad_number').text
         else:
             self.data['common_land_cad_number'] = None
         

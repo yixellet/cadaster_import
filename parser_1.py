@@ -10,6 +10,7 @@ from .parser_elements.quarter import quarter
 from .parser_elements.LandRecord import LandRecord
 from .parser_elements.mun_boundaries import mun_boundaries
 from .parser_elements.zones import zones
+from .parser_elements.Zone import Zone
 from .parser_elements.coastlines import coastlines
 from .parser_elements.contours import getGeometryInfo
 from .loaders.layer_creator_1 import LayerCreator
@@ -88,8 +89,20 @@ class Parser():
         details = detailsStatement(self.root)
         result.update(details)
         if self.root.tag == 'extract_about_property_land':
-            result.update(parseEapl(self.root))
+            record= LandRecord(self.root.tag.find('land_record'))
+            record.parse()
+            data = record.data
+            data.update(details)
             LayerCreator.loadData(result)
+        if self.root.tag == 'extract_about_zone':
+            ztcs = self.root.find('zone_territory_coastline_surveying')
+            z_and_t = ztcs.find('zones_and_territories')
+            if z_and_t:
+                record= Zone(z_and_t)
+                record.parse()
+                data = record.data
+                data.update(details)
+                LayerCreator.loadData(result)
         if self.root.tag == 'extract_about_property_construction':
             result.update(parseEapc(self.root))
             LayerCreator.loadData(result)
@@ -103,19 +116,23 @@ class Parser():
                         land_records = base_data.find('land_records')
                         if land_records:
                             for land_record in land_records:
-                                record= LandRecord(land_record)
+                                record = LandRecord(land_record)
                                 record.parse()
                                 data = record.data
                                 data.update(details)
                                 LayerCreator.loadData(data)
+                    zones_bounds = block.find('zones_and_territories_boundaries')
+                    if zones_bounds:
+                        for zone in zones_bounds.findall('zones_and_territories_record'):
+                            record = Zone(zone, 'extract_cadastral_plan_territory')
+                            record.parse()
+                            data = record.data
+                            data.update(details)
+                            LayerCreator.loadData(data)
+
             """
             result.update(quarter(self.root))
             LayerCreator.loadData(result)
-            lands = land_records(self.root)
-            if lands:
-                for land_record in lands:
-                    land_record.update(detailsStatement(self.root))
-                    LayerCreator.loadData(land_record)
             
             mun_bounds = mun_boundaries(self.root)
             if mun_bounds:

@@ -13,7 +13,7 @@ def cadLink(element, type):
         else:
             for e in io.findall(type[:-1]):
                 cn = e.find('cad_number').text
-                cns = re.split('[,;]\s*', cn)
+                cns = re.split(r'[,;]\s*', cn)
                 array = array + cns
     else:
         array = None

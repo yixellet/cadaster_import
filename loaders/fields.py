@@ -28,6 +28,11 @@ fields = {
         'name': 'full_name_position',
         'desc': 'Полное наименование должности'
     },
+    'name_by_doc': {
+        'type': QMetaType.QString,
+        'name': 'name_by_doc',
+        'desc': 'Вид или наименование по документу'
+    },
     'initials_surname': {
         'type': QMetaType.QString,
         'name': 'initials_surname',
@@ -57,11 +62,6 @@ fields = {
         'type': QMetaType.QString,
         'name': 'rel_position',
         'desc': 'Местоположение относительно ориентира'
-    },
-    'registration_date': {
-        'type': QMetaType.QDateTime,
-        'name': 'registration_date',
-        'desc': 'Дата постановки на учет/регистрации'
     },
     'cancel_date': {
         'type': QMetaType.QDateTime,
@@ -168,6 +168,11 @@ fields = {
         'name': 'gr_reg_numb_border',
         'desc': 'Реестровый номер границы'
     },
+    'reg_numb_border': {
+        'type': QMetaType.QString,
+        'name': 'reg_numb_border',
+        'desc': 'Реестровый номер границы'
+    },
     'gr_land_use': {
         'type': QMetaType.QString,
         'name': 'gr_land_use',
@@ -207,6 +212,11 @@ fields = {
         'type': QMetaType.QString,
         'name': 'common_land_cad_number',
         'desc': 'Кадастровый номер единого землепользования'
+    },
+    'number': {
+        'type': QMetaType.QString,
+        'name': 'number',
+        'desc': 'Номер'
     },
     'land_cad_numbers': {
         'type': QMetaType.QString,

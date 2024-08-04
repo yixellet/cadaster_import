@@ -2,6 +2,8 @@ from datetime import datetime
 from xml.etree.ElementTree import Element
 from typing import Union
 
+from ..cadaster_import_utils import logMessage
+
 class ParserElements():
     """
     Инструменты парсинга элементов, общих для всех типов XML
@@ -20,7 +22,11 @@ class ParserElements():
         :return: Возвращает строку - код или значение
         :rtype: str
         """
-        return root.find(export_element).text
+        data = root.find(export_element)
+        logMessage(root.find(export_element).text)
+        if data:
+            return root.find(export_element).text
+        return ''
 
     @classmethod
     def parse_common_data(self, root: Element) -> dict[str, str]:
@@ -46,12 +52,17 @@ class ParserElements():
         """
         result = {}
         result['registration_date'] = \
-            datetime.fromtimestamp(element.find('registration_date').text)
+            datetime.fromisoformat(element.find('registration_date').text)
         cancel_date = element.find('cancel_date')
         if cancel_date != None:
-            result['cancel_date'] = datetime.fromtimestamp(cancel_date.text)
+            result['cancel_date'] = datetime.fromisoformat(cancel_date.text)
         else:
             result['cancel_date'] = None
+        
+        dates_changes = element.find('dates_changes')
+        if dates_changes:
+            for date_change in dates_changes.findall('date_change'):
+                result['date_change'] = datetime.fromtimestamp(date_change.text)
 
         return result
 

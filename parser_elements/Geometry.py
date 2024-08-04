@@ -19,7 +19,7 @@ class Geometry():
         """Инициализация экземпляра класса Geometry
 
         :param element: Элемент XML документа, корневой для геометрии, 
-        элементы типа \<contours_location\> и \<spatial_data\>
+        элементы типа contours_location и spatial_data
         :type element: Element
         :param object: Тип разбираемого объекта. Может принимать 
         значения lands, zones, constructions, buildings, borders, coastlines
@@ -68,21 +68,21 @@ class Geometry():
         :return: Сокращенное обозначение СК
         :rtype: str
         """
-        cad_number_splitted = re.split('[-:]', self.cad_number)
+        cad_number_splitted = re.split(r'[-:]', self.cad_number)
         region_code = cad_number_splitted[0]    # '30'
         # TODO: Разработать алгоритм определения МСК других субъектов
         if point:
             east = point.x()
             nord = point.y()
             return region_code + '.' + str(east)[0]
-        return ''
+        return 'no_geometry'
 
     @staticmethod
     def extract_sk_id(entity_spatial: Element) -> Union[str, None]:
         """
         Извлекает из XML документа обозначение системы координат
 
-        :param entity_spatial: Элемент типа \<entity_spatial\>
+        :param entity_spatial: Элемент типа entity_spatial
         :type entity_spatial: Element
         :return: Обозначение СК в документе или None
         :rtype: Union[str, None]
@@ -129,15 +129,15 @@ class Geometry():
         dict[str, Union[str, QgsGeometry]]:
         """
         Извлекает геометрическую информацию из одного конкретного контура
-        (элемент \<contour\> или \<spatial_data\>)
+        (элемент contour или spatial_data)
         
         :param root_element: Элемент XML документа, корневой для геометрии, 
-        элементы типа \<contour\> и \<spatial_data\>
+        элементы типа contour и spatial_data
         :type root_element: Element
         :param to_wgs: Флаг, определяющий необходимость пересчета координат
         в WGS-84, defaults to False
         :type to_wgs: bool, optional
-        :return: Словарь \{'geom': QgsGeometry, 'crs': str\}
+        :return: Словарь {'geom': QgsGeometry, 'crs': str}
         :rtype: dict
         """
 

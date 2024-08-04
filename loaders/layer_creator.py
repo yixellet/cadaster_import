@@ -30,7 +30,8 @@ class LayerCreator():
     def __init__(self):
         pass
     
-    def createLayer(self, geometryType: str, content: str, mskZone: str) -> QgsVectorLayer:
+    @classmethod
+    def createLayer(cls, geometryType: str, content: str, mskZone: str) -> QgsVectorLayer:
         """Создаёт новый слой в QGIS и возвращает его.
 
         Аргументы:
@@ -42,7 +43,7 @@ class LayerCreator():
         provider = vectorLayer.dataProvider()
 
         for field in fields.values():
-            if field['name'] in self.FIELDS[content]:
+            if field['name'] in cls.FIELDS[content]:
                 logMessage(str(field))
                 provider.addAttributes([QgsField(name=field['name'], type=field['type'], comment=field['desc'])])
         vectorLayer.updateFields()
@@ -60,7 +61,7 @@ class LayerCreator():
         
         layers = { layer.name(): layer for layer in QgsProject.instance().mapLayers().values() }
         generatedLayerName = 'temp_' + data['content'] + '_' + data['geometry_type'] + '__' + data['crs']
-
+        logMessage(generatedLayerName)
         if generatedLayerName in layers.keys():
             layer = layers[generatedLayerName]
         else:
