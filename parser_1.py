@@ -6,6 +6,7 @@ from .parser_elements.parse_eapl import parseEapl
 from .parser_elements.parse_eapc import parseEapc
 from .parser_elements.common_data import commonData
 from .parser_elements.quarter import quarter
+from .parser_elements.Quarter import Quarter
 # from .parser_elements.land_records import land_records
 from .parser_elements.LandRecord import LandRecord
 from .parser_elements.mun_boundaries import mun_boundaries
@@ -110,6 +111,10 @@ class Parser():
             cad_blocks = self.root.find('cadastral_blocks')
             if cad_blocks:
                 for block in cad_blocks.findall('cadastral_block'):
+                    quarter = Quarter(block)
+                    quarter.parse()
+                    result.update(quarter.data)
+                    LayerCreator.loadData(result)
                     record_data = block.find('record_data')
                     if record_data:
                         base_data = record_data.find('base_data')
@@ -121,12 +126,13 @@ class Parser():
                                 data = record.data
                                 data.update(details)
                                 LayerCreator.loadData(data)
-                    zones_bounds = block.find('zones_and_territories_boundaries')
-                    if zones_bounds:
-                        for zone in zones_bounds.findall('zones_and_territories_record'):
+                    zones = block.find('zones_and_territories_boundaries')
+                    if zones:
+                        for zone in zones.findall('zones_and_territories_record'):
                             record = Zone(zone, 'extract_cadastral_plan_territory')
                             record.parse()
                             data = record.data
+                            #logMessage(data['reg_numb_border'])
                             data.update(details)
                             LayerCreator.loadData(data)
 

@@ -22,10 +22,10 @@ class LayerCreator():
                   'cad_number', 'type', 'area_inaccuracy', 
                   'area', 'area_type', 'land_use_by_document', 'land_use', 
                   'land_use_mer'],
-        'quarters': ['date_formation', 'cadastral_number', 'area'],
+        'quarters': ['date_formation', 'cad_number', 'area'],
         'municipal_boundaries': ['registration_number', 'type_boundary'],
         'zones': ['registration_number', 'type_boundary', 'type_zone', 
-                  'name_by_doc', 'number', 'registration_date',
+                  'name_by_doc', 'number', 'registration_date', 
                   'reg_numb_border'],
         'coastlines': ['registration_number', 'registration_number', 'water']
     }
@@ -64,7 +64,7 @@ class LayerCreator():
         аргументы:
         data - словарь с распарсенным объектом
         """
-        
+
         layers = { layer.name(): layer for layer in QgsProject.instance().mapLayers().values() }
         generatedLayerName = 'temp_' + data['content'] + '_' + data['geometry_type'] + '__' + data['crs']
 
@@ -75,11 +75,11 @@ class LayerCreator():
         
         s = None
         if data['content'] in ('municipal_boundaries', 'zones', 'coastlines'):
-            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"registration_number"=\'{}\''.format(data['registration_number'])))
+            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"reg_numb_border"=\'{}\''.format(data['reg_numb_border'])))
         elif data['content'] in ('lands', 'constructions'):
             s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cad_number"=\'{}\''.format(data['cad_number'])))
         elif data['content'] in ('quarters'):
-            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cadastral_number"=\'{}\''.format(data['cadastral_number'])))
+            s = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cad_number"=\'{}\''.format(data['cad_number'])))
         count = 0
         for f in s:
             count += 1
@@ -87,7 +87,7 @@ class LayerCreator():
         if count == 0:
             feat = QgsFeature(layer.fields())
             if data['geom'] != None:
-                if data['content'] in ('zones', 'lands'):
+                if data['content'] in ('zones', 'lands', 'quarters'):
                     feat.setGeometry(data['geom'])
                 else:
                     feat.setGeometry(QgsGeometry.fromWkt(data['geom']))

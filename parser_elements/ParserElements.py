@@ -1,6 +1,7 @@
 from datetime import datetime
 from xml.etree.ElementTree import Element
 from typing import Union
+from qgis.PyQt.QtCore import QDateTime
 
 from ..cadaster_import_utils import logMessage
 
@@ -23,10 +24,10 @@ class ParserElements():
         :rtype: str
         """
         data = root.find(export_element)
-        logMessage(root.find(export_element).text)
-        if data:
-            return root.find(export_element).text
-        return ''
+        if data != None:
+            return data.text
+        else:
+            return None
 
     @classmethod
     def parse_common_data(self, root: Element) -> dict[str, str]:
@@ -52,7 +53,7 @@ class ParserElements():
         """
         result = {}
         result['registration_date'] = \
-            datetime.fromisoformat(element.find('registration_date').text)
+            QDateTime(datetime.fromisoformat(element.find('registration_date').text))
         cancel_date = element.find('cancel_date')
         if cancel_date != None:
             result['cancel_date'] = datetime.fromisoformat(cancel_date.text)

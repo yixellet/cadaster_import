@@ -22,7 +22,7 @@ class Geometry():
         элементы типа contours_location и spatial_data
         :type element: Element
         :param object: Тип разбираемого объекта. Может принимать 
-        значения lands, zones, constructions, buildings, borders, coastlines
+        значения lands, zones, constructions, buildings, borders, coastlines, quarters
         :type object: str
         :param cad_number: Кадастровый (регистрационный) номер
         :type cad_number: str
@@ -121,11 +121,10 @@ class Geometry():
                 temp_result[geom_contour['crs']] = geom_contour
             else:
                 temp_result[geom_contour['crs']]['geom'].addPartGeometry(geom_contour['geom'])
-
         return list(temp_result.values())
 
     def extract_single_contour(self, 
-                               root_element: Element, to_wgs: bool = False) -> \
+                               root_element: Element = '', to_wgs: bool = False) -> \
         dict[str, Union[str, QgsGeometry]]:
         """
         Извлекает геометрическую информацию из одного конкретного контура
@@ -142,6 +141,8 @@ class Geometry():
         """
 
         result = {}
+        if self.object_type == 'quarters':
+            root_element = self.root_element
 
         entity_spatial = root_element.find('entity_spatial')
         msk_zone = ''

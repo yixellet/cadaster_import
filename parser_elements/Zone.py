@@ -61,7 +61,7 @@ class Zone():
         geometry = Geometry(self.root_element.find(self.contours_tag),
                             self.OBJECT_TYPE,
                             self.data['reg_numb_border'])
-    
+        # logMessage(str(geometry.extract_geometry()))
         contour = geometry.extract_geometry()[0]
         self.data.update(contour)
     

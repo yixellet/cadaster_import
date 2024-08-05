@@ -44,7 +44,9 @@ class LandRecord():
         # Object
         object = self.root_element.find('object')
         self.data.update(PE.parse_common_data(object))
-        self.data['subtype'] = PE.parse_dict(object.find('subtype'))
+        subtype = object.find('subtype')
+        if subtype:
+            self.data['subtype'] = PE.parse_dict(object.find('subtype'))
         self.parse_params()
 
         # Cad links
